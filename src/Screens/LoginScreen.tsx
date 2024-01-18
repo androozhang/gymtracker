@@ -1,17 +1,16 @@
 import { View, Text, TextInput, StyleSheet, ActivityIndicator, Button, KeyboardAvoidingView } from 'react-native'
 import React from 'react'
-import { FIREBASE_AUTH } from '../../FirebaseConfig';
-import { FIRESTORE_DB } from '../../FirebaseConfig';  
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, collection, doc, setDoc, addDoc } from 'firebase/firestore';
+import { FIREBASE_AUTH } from '../Services/FirebaseConfig'; 
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useNavigation } from '@react-navigation/native';
 
-const Login = () => {
+const LoginScreen = () => {
   const [name, setName] = React.useState(''); 
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const auth = FIREBASE_AUTH;
-  const myCollection = collection(FIRESTORE_DB, 'myCollection');
+  const navigation = useNavigation();
   
   const signIn = async() => {
     setLoading(true);
@@ -26,38 +25,16 @@ const Login = () => {
     }
   }
 
-  const signUp = async() => {
-    setLoading(true);
-    try {
-      const response = await createUserWithEmailAndPassword(auth, email, password);
-      const userCollection = collection(FIRESTORE_DB, 'userCollection');
-      const userData = {
-        userId: response.user.uid,
-        name: name,
-        email: email,
-      };
-      const newDocRef = await addDoc(userCollection, userData);
-      console.log('New document added with ID:', newDocRef.id);
-      alert("Check your emails!")
-    } catch (error: any) {
-      alert('Sign in failed: ' + error.message);
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <View style={style.container}>
       <KeyboardAvoidingView behavior='padding'>
-        <TextInput value={name} style={style.input} placeholder='Full Name' onChangeText={(text) => setName(text)}></TextInput>
         <TextInput value={email} style={style.input} placeholder='Email' autoCapitalize='none' onChangeText={(text) => setEmail(text)}></TextInput>
         <TextInput secureTextEntry={true} value={password} style={style.input} placeholder='Password' autoCapitalize='none' onChangeText={(text) => setPassword(text)}></TextInput>
     { loading ? (<ActivityIndicator size="large" color="#0000ff" /> 
     ) : ( 
         <> 
           <Button title="Login" onPress={signIn} />
-          <Button title="Create Account" onPress={signUp} />
+          <Button title="Don't have an account yet" onPress={() => navigation.navigate("Register")} />
         </>
     )}
         </KeyboardAvoidingView>
@@ -65,7 +42,7 @@ const Login = () => {
   )
 }
 
-export default Login
+export default LoginScreen
 
 const style = StyleSheet.create({
     container: {
