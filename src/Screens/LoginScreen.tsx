@@ -1,8 +1,9 @@
 import { View, Text, TextInput, StyleSheet, ActivityIndicator, Button, KeyboardAvoidingView } from 'react-native'
 import React from 'react'
-import { FIREBASE_AUTH } from '../Services/FirebaseConfig'; 
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { FIREBASE_AUTH, FIRESTORE_DB } from '../Services/FirebaseConfig'; 
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
+import { addDoc, collection } from 'firebase/firestore';
 
 const LoginScreen = () => {
   const [name, setName] = React.useState(''); 
@@ -25,6 +26,27 @@ const LoginScreen = () => {
     }
   }
 
+  const signUp = async() => {
+    setLoading(true);
+    try {
+      const response = await createUserWithEmailAndPassword(auth, email, password);
+      const userCollection = collection(FIRESTORE_DB, 'userCollection');
+      const userData = {
+        userId: response.user.uid,
+        name: name,
+        email: email,
+      };
+      const newDocRef = await addDoc(userCollection, userData);
+      console.log('New document added with ID:', newDocRef.id);
+      alert("Check your emails!")
+    } catch (error: any) {
+      alert('Sign in failed: ' + error.message);
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <View style={style.container}>
       <KeyboardAvoidingView behavior='padding'>
@@ -34,7 +56,7 @@ const LoginScreen = () => {
     ) : ( 
         <> 
           <Button title="Login" onPress={signIn} />
-          <Button title="Don't have an account yet" onPress={() => navigation.navigate("Register")} />
+          <Button title="Create Account" onPress={signUp} />
         </>
     )}
         </KeyboardAvoidingView>
