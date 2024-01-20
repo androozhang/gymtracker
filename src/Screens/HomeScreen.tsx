@@ -1,14 +1,21 @@
 import { StyleSheet, View, Text, Pressable, FlatList, Button } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, RouteProp, useNavigation } from '@react-navigation/native';
 import { FIREBASE_AUTH } from '../Services/FirebaseConfig';
+import Day from '../Components/Day';
 
-const HomeScreen = () => {
-  const navigation = useNavigation();
+interface RouterProps {
+  navigation: NavigationProp<any, any>;
+}
+
+const HomeScreen = ({navigation}: RouterProps) => {
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
-    <View style={{ flex: 1, paddingTop: 10 }}>
-      <Button title="Logout" onPress={FIREBASE_AUTH.signOut} />
-    </View>
+    <FlatList
+      data={days}
+      renderItem={({ item }) => <Day day={item} />}
+      keyExtractor={(item) => item}
+    />
   );
 };
 

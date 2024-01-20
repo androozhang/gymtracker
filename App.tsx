@@ -1,21 +1,45 @@
 import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import LoginScreen from './src/Screens/LoginScreen';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { FIREBASE_AUTH } from './src/Services/FirebaseConfig';
+import LoginScreen from './src/Screens/LoginScreen';
 import HomeScreen from './src/Screens/HomeScreen';
+import ProfileScreen from './src/Screens/ProfileScreen';
+import DayDetailScreen from './src/Screens/DayDetailScreen';
+import {
+  RootStackParamList,
+  HomeStackNavigationProp,
+  ProfileStackNavigationProp,
+  AppNavigationProps,
+  AppRouteProps,
+} from './src/Navigations/types';
 
-const InsideStack = createNativeStackNavigator();
-const Stack = createNativeStackNavigator();
+const HomeStack = createNativeStackNavigator<RootStackParamList>();
+const ProfileStack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<RootStackParamList>();
 
-function InsideLayout() {
+function ProfileStackScreen() {
   return (
-    <InsideStack.Navigator>
-      <InsideStack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
-    </InsideStack.Navigator>
-  )
+    <ProfileStack.Navigator>
+      <ProfileStack.Screen name="ProfileStack" component={ProfileScreen} />
+    </ProfileStack.Navigator>
+  );
+}
+
+function HomeStackScreen({ navigation }: AppNavigationProps<'HomeStack'>) {
+  return (
+    <HomeStack.Navigator>
+      <HomeStack.Screen name="HomeStack" component={HomeScreen} />
+      <HomeStack.Screen
+        name="DayDetailScreen"
+        component={DayDetailScreen}
+        initialParams={{ day: '' }}
+      />
+    </HomeStack.Navigator>
+  );
 }
 
 export default function App() {
@@ -23,23 +47,22 @@ export default function App() {
 
   useEffect(() => {
     onAuthStateChanged(FIREBASE_AUTH, (user) => {
-      console.log('user', user);
       setUser(user);
     });
   }, []);
 
   return (
-   <NavigationContainer>
-      <Stack.Navigator initialRouteName='Login'>
+    <NavigationContainer>
+      <Tab.Navigator initialRouteName="Login">
         {user ? (
-        <Stack.Screen name='InsideLayout' component={InsideLayout} options={{ headerShown:false}} />
+          <>
+            <Tab.Screen name="HomeStack" component={HomeStackScreen} options={{ headerShown: false }} />
+            <Tab.Screen name="ProfileStack" component={ProfileStackScreen} options={{ headerShown: false }} />
+          </>
         ) : (
-        <Stack.Screen name='LoginScreen' component={LoginScreen} options={{ headerShown:false}} />
+          <Tab.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         )}
-      </Stack.Navigator>
-
-   </NavigationContainer>
+      </Tab.Navigator>
+    </NavigationContainer>
   );
 }
-
-
