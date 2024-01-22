@@ -10,7 +10,7 @@ const Day = (props: DayProps) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
-    navigation.navigate('DayDetailScreen', { day: props.day });
+    navigation.navigate('DayDetail', { day: props.day });
   };
 
   return (

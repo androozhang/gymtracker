@@ -1,3 +1,5 @@
+// App.tsx
+
 import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -9,39 +11,54 @@ import LoginScreen from './src/Screens/LoginScreen';
 import HomeScreen from './src/Screens/HomeScreen';
 import ProfileScreen from './src/Screens/ProfileScreen';
 import DayDetailScreen from './src/Screens/DayDetailScreen';
-import {
-  RootStackParamList,
-  HomeStackNavigationProp,
-  ProfileStackNavigationProp,
-  AppNavigationProps,
-  AppRouteProps,
-} from './src/Navigations/types';
+import type { RootStackParamList } from './src/Navigations/types';
 
+// Create navigators with specified param lists
 const HomeStack = createNativeStackNavigator<RootStackParamList>();
 const ProfileStack = createNativeStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator<RootStackParamList>();
+const AuthStack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator();
 
+// Define screen components
 function ProfileStackScreen() {
   return (
     <ProfileStack.Navigator>
-      <ProfileStack.Screen name="ProfileStack" component={ProfileScreen} />
+      <ProfileStack.Screen
+        name="Profile"
+        component={ProfileScreen}
+      />
     </ProfileStack.Navigator>
   );
 }
 
-function HomeStackScreen({ navigation }: AppNavigationProps<'HomeStack'>) {
+function HomeStackScreen() {
   return (
     <HomeStack.Navigator>
-      <HomeStack.Screen name="HomeStack" component={HomeScreen} />
       <HomeStack.Screen
-        name="DayDetailScreen"
+        name="Home"
+        component={HomeScreen}
+      />
+      <HomeStack.Screen
+        name="DayDetail"
         component={DayDetailScreen}
-        initialParams={{ day: '' }}
       />
     </HomeStack.Navigator>
   );
 }
 
+function AuthStackScreen() {
+  return (
+    <AuthStack.Navigator>
+      <AuthStack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+    </AuthStack.Navigator>
+  );
+}
+
+// Main App component
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
 
@@ -53,16 +70,14 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Tab.Navigator initialRouteName="Login">
-        {user ? (
-          <>
-            <Tab.Screen name="HomeStack" component={HomeStackScreen} options={{ headerShown: false }} />
-            <Tab.Screen name="ProfileStack" component={ProfileStackScreen} options={{ headerShown: false }} />
-          </>
-        ) : (
-          <Tab.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-        )}
-      </Tab.Navigator>
+      {user ? (
+        <Tab.Navigator initialRouteName='Home'>
+          <Tab.Screen name='Home' component={HomeStackScreen} options={{ headerShown: false }} />
+          <Tab.Screen name='Profile' component={ProfileStackScreen} options={{ headerShown: false }} />
+        </Tab.Navigator>
+      ) : (
+        <AuthStackScreen />
+      )}
     </NavigationContainer>
   );
 }

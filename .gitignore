@@ -16,6 +16,10 @@ web-build/
 *.key
 *.mobileprovision
 
+# Add ios and android folders to ignore native project folders
+ios/
+android/
+
 # Metro
 .metro-health-check*
 

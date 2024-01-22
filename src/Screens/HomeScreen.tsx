@@ -2,9 +2,10 @@ import { StyleSheet, View, Text, Pressable, FlatList, Button } from 'react-nativ
 import { NavigationProp, RouteProp, useNavigation } from '@react-navigation/native';
 import { FIREBASE_AUTH } from '../Services/FirebaseConfig';
 import Day from '../Components/Day';
+import { HomeStackNavigationProp } from '../Navigations/types';
 
 interface RouterProps {
-  navigation: NavigationProp<any, any>;
+  navigation: HomeStackNavigationProp;
 }
 
 const HomeScreen = ({navigation}: RouterProps) => {

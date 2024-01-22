@@ -2,14 +2,14 @@ import { ParamListBase } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
 export type RootStackParamList = {
-  HomeStack: undefined;
-  DayDetailScreen: { day: string };
+  Home: undefined;
+  DayDetail: { day: string };
   Login: undefined;
-  ProfileStack: undefined;
+  Profile: undefined;
 };
 
-export type HomeStackNavigationProp = StackNavigationProp<RootStackParamList, 'HomeStack'>;
-export type ProfileStackNavigationProp = StackNavigationProp<RootStackParamList, 'ProfileStack'>;
+export type HomeStackNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+export type ProfileStackNavigationProp = StackNavigationProp<RootStackParamList, 'Profile'>;
 
 export type AppNavigationProps<T extends keyof RootStackParamList> = {
   navigation: StackNavigationProp<RootStackParamList, T>;
