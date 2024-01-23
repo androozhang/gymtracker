@@ -30,9 +30,10 @@ const LoginScreen = () => {
     setLoading(true);
     try {
       const response = await createUserWithEmailAndPassword(auth, email, password);
-      const userCollection = collection(FIRESTORE_DB, 'userCollection');
+      const userId = response.user.uid;
+      const userCollection = collection(FIRESTORE_DB, 'userCollection', userId);
       const userData = {
-        userId: response.user.uid,
+        userId: userId,
         name: name,
         email: email,
       };

@@ -3,6 +3,7 @@ import { NavigationProp, RouteProp, useNavigation } from '@react-navigation/nati
 import { FIREBASE_AUTH } from '../Services/FirebaseConfig';
 import Day from '../Components/Day';
 import { HomeStackNavigationProp } from '../Navigations/types';
+import React from 'react';
 
 interface RouterProps {
   navigation: HomeStackNavigationProp;
