@@ -3,9 +3,15 @@ import { StackNavigationProp } from '@react-navigation/stack';
 
 export type RootStackParamList = {
   Home: undefined;
-  DayDetail: { day: string };
+  DayDetail: { day: string, weekSet: number};
   Login: undefined;
   Profile: undefined;
+};
+
+export type Exercise = {
+  title: string;
+  sets: number;
+  repRange: string;
 };
 
 export type HomeStackNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;

@@ -1,9 +1,9 @@
 import { View, Text, TextInput, StyleSheet, ActivityIndicator, Button, KeyboardAvoidingView } from 'react-native'
 import React from 'react'
-import { FIREBASE_AUTH, FIRESTORE_DB } from '../Services/FirebaseConfig'; 
+import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/FirebaseConfig'; 
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, setDoc, collection, doc, DocumentReference, getFirestore } from 'firebase/firestore';
 
 const LoginScreen = () => {
   const [name, setName] = React.useState(''); 
@@ -11,6 +11,7 @@ const LoginScreen = () => {
   const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const auth = FIREBASE_AUTH;
+  const db = FIRESTORE_DB;
   const navigation = useNavigation();
   
   const signIn = async() => {
@@ -25,28 +26,31 @@ const LoginScreen = () => {
       setLoading(false);
     }
   }
-
-  const signUp = async() => {
+  // signs up and makes a document in the users collection with the user's id
+  const signUp = async () => {
     setLoading(true);
     try {
       const response = await createUserWithEmailAndPassword(auth, email, password);
       const userId = response.user.uid;
-      const userCollection = collection(FIRESTORE_DB, 'userCollection', userId);
+      const usersCollection = collection(getFirestore(), 'users');
+      const userDocRef = doc(usersCollection, userId);
+      
       const userData = {
         userId: userId,
         name: name,
         email: email,
       };
-      const newDocRef = await addDoc(userCollection, userData);
-      console.log('New document added with ID:', newDocRef.id);
-      alert("Check your emails!")
+  
+      await setDoc(userDocRef, userData);
+      console.log('New document added with ID:', userId);
+      alert("Check your emails!");
     } catch (error: any) {
       alert('Sign in failed: ' + error.message);
       console.log(error);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <View style={style.container}>

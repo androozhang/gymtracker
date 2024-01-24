@@ -4,12 +4,12 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { FIREBASE_AUTH } from './src/Services/FirebaseConfig';
-import LoginScreen from './src/Screens/LoginScreen';
-import HomeScreen from './src/Screens/HomeScreen';
-import ProfileScreen from './src/Screens/ProfileScreen';
-import DayDetailScreen from './src/Screens/DayDetailScreen';
-import type { RootStackParamList } from './src/Navigations/types';
+import { FIREBASE_AUTH } from './src/services/FirebaseConfig';
+import LoginScreen from './src/screens/LoginScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import DayDetailScreen from './src/screens/DayDetailScreen';
+import type { RootStackParamList } from './src/navigations/types';
 
 // Create navigators with specified param lists
 const HomeStack = createNativeStackNavigator<RootStackParamList>();
