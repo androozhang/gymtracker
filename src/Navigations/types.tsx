@@ -3,7 +3,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 
 export type RootStackParamList = {
   Home: undefined;
-  DayDetail: { day: string, weekSet: number};
+  DayDetail: { day: string, weekSet: string};
   Login: undefined;
   Profile: undefined;
 };

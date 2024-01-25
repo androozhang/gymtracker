@@ -13,26 +13,27 @@ interface RouterProps {
 const HomeScreen = ({navigation}: RouterProps) => {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const [open, setOpen] = useState(false);
-  const [weekSet, setWeekSet] = useState(1);
+  const [value, setValue] = useState('firstSet');
   const [items, setItems] = useState([
-    {label: '1', weekSet: '1'},
-    {label: '2', weekSet: '2'}
+    {label: 'First Set', value: 'firstSet'},
+    {label: 'Second Set', value: 'secondSet'},
+    {label: 'Third Set', value: 'thirdSet'},
   ]);
 
   return (
     <>
-    <Text>{weekSet}</Text>
+    <Text>{value}</Text>
     <DropDownPicker
       open={open}
-      value={weekSet}
+      value={value}
       items={items}
       setOpen={setOpen}
-      setValue={setWeekSet}
+      setValue={setValue}
       setItems={setItems}
     />
     <FlatList
       data={days}
-      renderItem={({ item }) => <Day day={item} weekSet={weekSet}/>}
+      renderItem={({ item }) => <Day day={item} weekSet={value}/>}
       keyExtractor={(item) => item}
     />
     </>

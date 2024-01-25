@@ -3,23 +3,44 @@ import { Modal, Text, TextInput, Button, View } from 'react-native';
 import { Exercise } from '../navigations/types';
 
 type ExerciseModalProps = {
-    visible: boolean;
-    onClose: () => void;
-    onAdd: (newExercise: Exercise) => void;
+  visible: boolean;
+  onClose: () => void;
+  onAdd: (newExercise: Exercise) => void;
+  newExerciseTitle: string;
+  setNewExerciseTitle: React.Dispatch<React.SetStateAction<string>>;
+  newExerciseSets: number;
+  setNewExerciseSets: React.Dispatch<React.SetStateAction<number>>;
+  newExerciseRepRange: string;
+  setNewExerciseRepRange: React.Dispatch<React.SetStateAction<string>>;
+  exerciseToEdit?: Exercise | null;
 };
 
-const ExerciseModal: React.FC<ExerciseModalProps> = ({ visible, onClose, onAdd }) => {
-  const [newExerciseTitle, setNewExerciseTitle] = useState('');
-  const [newExerciseSets, setNewExerciseSets] = useState(3);
-  const [newExerciseRepRange, setNewExerciseRepRange] = useState('8-12');
-
+const ExerciseModal: React.FC<ExerciseModalProps> = ({
+  visible,
+  onClose,
+  onAdd,
+  newExerciseTitle,
+  setNewExerciseTitle,
+  newExerciseSets,
+  setNewExerciseSets,
+  newExerciseRepRange,
+  setNewExerciseRepRange,
+  exerciseToEdit,
+}) => {
   const addExercise = () => {
-    const newExercise: Exercise = {
-        title: newExerciseTitle,
-        sets: newExerciseSets,
-        repRange: newExerciseRepRange,
-      };
-    onAdd(newExercise);
+    const updatedExercise: Exercise = exerciseToEdit
+      ? {
+          title: newExerciseTitle || exerciseToEdit.title,
+          sets: newExerciseSets || exerciseToEdit.sets,
+          repRange: newExerciseRepRange || exerciseToEdit.repRange,
+        }
+      : {
+          title: newExerciseTitle,
+          sets: newExerciseSets,
+          repRange: newExerciseRepRange,
+        };
+  
+    onAdd(updatedExercise);
     setNewExerciseTitle('');
     setNewExerciseSets(3);
     setNewExerciseRepRange('8-12');

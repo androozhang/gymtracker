@@ -39,12 +39,12 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const [newExerciseTitle, setNewExerciseTitle] = useState('');
   const [newExerciseSets, setNewExerciseSets] = useState(3);
   const [newExerciseRepRange, setNewExerciseRepRange] = useState('8-12');
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const user = FIREBASE_AUTH.currentUser?.uid;
-
   const userRef = firestore().collection('users').doc(user);
-  const exercisesRef = userRef.collection(day);
+  const exercisesRef = userRef.collection('workoutPlans').doc(weekSet).collection("days").doc(day).collection('exercises');
 
-  const refreshExercises = async () => {
+  async function refreshExercises() {
     try {
       const querySnapshot = await exercisesRef.get();
       const exercises: Exercise[] = [];
@@ -65,12 +65,11 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
     } catch (error) {
       console.error("Error fetching exercises:", error);
     }
-  };
+  }
 
   useEffect(() => {
-    // Fetch exercises when the component mounts
     refreshExercises();
-  }, []); // Empty dependency array ensures it only runs once
+  }, []); 
 
   const addExercise = async () => {
     try {
@@ -79,16 +78,21 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         sets: newExerciseSets,
         repRange: newExerciseRepRange,
       });
-      // Reset form fields
       setNewExerciseTitle('');
       setNewExerciseSets(3);
       setNewExerciseRepRange('8-12');
-      // Fetch exercises after adding a new one
+
       refreshExercises();
       setShowAddExerciseModal(false);
     } catch (error) {
       console.error("Error adding exercise:", error);
     }
+  };
+
+  const handleEditExercise = (exercise: Exercise) => {
+
+    setShowAddExerciseModal(true)
+
   };
 
   if (loading) {
@@ -103,10 +107,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
               data={exercises}
               renderItem={({ item }) => (
                 <TouchableHighlight
-                  onPress={() => {
-                    // Handle editing the exercise (e.g., open another modal)
-                    console.log(`Edit exercise ${item.id}`);
-                  }}
+                  onPress={() => handleEditExercise(item)}
                 >
                   <View>
                     <Text>Exercise Title: {item.title}</Text>
@@ -118,9 +119,17 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
             />
         <ExerciseModal
           visible={showAddExerciseModal}
-          onClose={() => setShowAddExerciseModal(false)}
+          onClose={() => {setShowAddExerciseModal(false);
+                          setEditingExercise(null);}}
           onAdd={addExercise}
-        />
+          newExerciseTitle={newExerciseTitle}
+          setNewExerciseTitle={setNewExerciseTitle}
+          newExerciseSets={newExerciseSets}
+          setNewExerciseSets={setNewExerciseSets}
+          newExerciseRepRange={newExerciseRepRange}
+          setNewExerciseRepRange={setNewExerciseRepRange}
+          exerciseToEdit={editingExercise}
+          />
     </View>
   );
 };

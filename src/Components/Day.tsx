@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 
 interface DayProps {
   day: string;
-  weekSet: number;
+  weekSet: string;
 }
 
 const Day = (props: DayProps) => {
@@ -18,7 +18,6 @@ const Day = (props: DayProps) => {
     <View>
       <TouchableOpacity onPress={handlePress}>
         <Text>{props.day}</Text>
-        <Text>{props.weekSet}</Text>
       </TouchableOpacity>
     </View>
   );
