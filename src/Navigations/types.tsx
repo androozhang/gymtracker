@@ -9,10 +9,12 @@ export type RootStackParamList = {
 };
 
 export type Exercise = {
+  id: string;
   title: string;
   sets: number;
   repRange: string;
 };
+
 
 export type HomeStackNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 export type ProfileStackNavigationProp = StackNavigationProp<RootStackParamList, 'Profile'>;
