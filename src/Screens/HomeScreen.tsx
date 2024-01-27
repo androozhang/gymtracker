@@ -23,6 +23,7 @@ const HomeScreen = ({navigation}: RouterProps) => {
   return (
     <>
     <Text>{value}</Text>
+    <Button title="Exercise Directory" onPress={() => navigation.navigate('MasterExerciseDirectory')} />
     <DropDownPicker
       open={open}
       value={value}

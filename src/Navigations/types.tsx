@@ -6,13 +6,20 @@ export type RootStackParamList = {
   DayDetail: { day: string, weekSet: string};
   Login: undefined;
   Profile: undefined;
+  MasterExerciseDirectory: undefined;
 };
 
 export type Exercise = {
   id: string;
   title: string;
   sets: number;
-  repRange: string;
+  repRange: number;
+  firstRange: number;
+  secondRange: number;
+  thirdRange: number;
+  forthRange: number;
+  fifthRange: number;
+  sixthRange: number;
 };
 
 
