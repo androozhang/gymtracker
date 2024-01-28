@@ -47,6 +47,8 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
     {label: '5 Sets', value: '5'},
     {label: '6 Sets', value: '6'},   
   ]);
+
+
   
   async function refreshExercises() {
     try {
@@ -66,6 +68,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           forthRange: data.forthRange,
           fifthRange: data.fifthRange,
           sixthRange: data.sixthRange,
+          reference: data.reference,
         };
         exercises.push(exercise);
       });
@@ -76,6 +79,10 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
       console.error("Error fetching exercises:", error);
     }
   }
+
+  useEffect(() => {
+    refreshExercises();
+  }, []);
 
 
   useEffect(() => {
@@ -120,7 +127,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
 
   const addExercise = async () => {
     try {
-      await exercisesRef.add({
+      const exerciseRef = await exercisesRef.add({
         title: newExerciseTitle,
         sets: value,
         repRange: newExerciseRepRange,
@@ -131,8 +138,12 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         fifthRange: fifthRange,
         sixthRange: sixthRange,
       });
-
-      await masterExercisesRef.add({
+  
+      // Get the ID of the added exercise
+      const exerciseId = exerciseRef.id;
+  
+      // Add exercise to masterExercisesRef with the same ID
+      await masterExercisesRef.doc(exerciseId).set({
         title: newExerciseTitle,
         sets: value,
         repRange: newExerciseRepRange,
@@ -142,6 +153,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         forthRange: forthRange,
         fifthRange: fifthRange,
         sixthRange: sixthRange,
+        reference: [`${user}/workoutPlans/${weekSet}/days/${day}`],
       });
 
       setNewExerciseTitle('');
@@ -173,7 +185,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           fifthRange: fifthRange,
           sixthRange: sixthRange,
         });
-
+        console.log(`${editingExercise.id}`)
         await masterExercisesRef.doc(editingExercise.id).update({
           title: newExerciseTitle,
           sets: value,
@@ -184,7 +196,6 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           fifthRange: fifthRange,
           sixthRange: sixthRange,
         });
-
         refreshExercises();
         setShowAddExerciseModal(false);
         setEditingExercise(null);
@@ -198,9 +209,11 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
     try {
       if (editingExercise) {
         await exercisesRef.doc(editingExercise.id).delete();
+        await masterExercisesRef.doc(editingExercise.id).delete();
         refreshExercises();
         setShowAddExerciseModal(false);
         setEditingExercise(null);
+
       }
     } catch (error) {
       console.error("Error deleting exercise:", error);
@@ -258,6 +271,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
             />
             {repRange.map((item, index) => (
               <TextInput
+                key={`repRangeTextInput-${index}`}  
                 placeholder={`Set ${index + 1} Rep Range`}
                 value={item.toString()}
                 onChangeText={text => {
@@ -266,8 +280,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
                   setRepRange(newRepRange);
                 }}
               />
-            ))
-            }
+            ))}
             <Button title={editingExercise ? 'Update' : 'Add'} onPress={editingExercise ? updateExercise : addExercise} />
             {editingExercise && (
               <Button title="Delete" onPress={deleteExercise} color="red" />

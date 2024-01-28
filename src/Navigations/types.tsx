@@ -20,6 +20,7 @@ export type Exercise = {
   forthRange: number;
   fifthRange: number;
   sixthRange: number;
+  reference: string[];
 };
 
 
