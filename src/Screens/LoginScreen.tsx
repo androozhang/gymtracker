@@ -17,8 +17,12 @@ const LoginScreen = () => {
   const signIn = async() => {
     setLoading(true);
     try {
+      // check if email is verified before logging in
+      if (auth.currentUser?.emailVerified === false) {
+        alert('Please verify your email before logging in.');
+        return;
+      }
       const response = await signInWithEmailAndPassword(auth, email, password);
-      console.log(response);
     } catch (error: any) {
       alert('Sign in failed: ' + error.message);
       console.log(error);
@@ -26,31 +30,6 @@ const LoginScreen = () => {
       setLoading(false);
     }
   }
-  // signs up and makes a document in the users collection with the user's id
-  const signUp = async () => {
-    setLoading(true);
-    try {
-      const response = await createUserWithEmailAndPassword(auth, email, password);
-      const userId = response.user.uid;
-      const usersCollection = collection(getFirestore(), 'users');
-      const userDocRef = doc(usersCollection, userId);
-      
-      const userData = {
-        userId: userId,
-        name: name,
-        email: email,
-      };
-  
-      await setDoc(userDocRef, userData);
-      console.log('New document added with ID:', userId);
-      alert("Check your emails!");
-    } catch (error: any) {
-      alert('Sign in failed: ' + error.message);
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <View style={style.container}>
@@ -61,7 +40,7 @@ const LoginScreen = () => {
     ) : ( 
         <> 
           <Button title="Login" onPress={signIn} />
-          <Button title="Create Account" onPress={signUp} />
+          <Button title="Create Account" onPress={() => navigation.navigate("Register")} />
         </>
     )}
         </KeyboardAvoidingView>

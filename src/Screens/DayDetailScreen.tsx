@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Text, TextInput, Button, View, FlatList, StyleSheet, TouchableHighlight, ActivityIndicator } from 'react-native';
+import { Modal, Text, TextInput, Button, View, FlatList, StyleSheet, TouchableHighlight, ActivityIndicator, TouchableOpacity } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import { FIREBASE_AUTH } from '../services/FirebaseConfig';
 import { Exercise, RootStackParamList } from '../navigations/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import DropDownPicker from 'react-native-dropdown-picker';
+import { ScrollView } from 'react-native-gesture-handler';
+import MasterExercisesList from '../components/MasterExeciseList';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 
 // Define types for route and navigation props
 type DayDetailScreenRouteProp = RouteProp<RootStackParamList, 'DayDetail'>;
@@ -22,6 +26,9 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const [loading, setLoading] = useState(true);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [showAddExerciseModal, setShowAddExerciseModal] = useState(false);
+  const [showAddOptionModal, setShowAddOptionModal] = useState(false);
+  const [showMasterExercisesModal, setShowMasterExercisesModal] = useState(false);
+  const [masterExercises, setMasterExercises] = useState<Exercise[]>([]);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [newExerciseTitle, setNewExerciseTitle] = useState(editingExercise ? editingExercise.title : '');
   const [newExerciseSets, setNewExerciseSets] = useState(editingExercise ? editingExercise.sets : 3);
@@ -48,6 +55,48 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
     {label: '6 Sets', value: '6'},   
   ]);
 
+  const [showMasterExercisesList, setShowMasterExercisesList] = useState(false);
+
+  // Function to open the master exercises list
+  const openMasterExercisesList = () => {
+    setShowMasterExercisesList(true);
+  };
+
+  // Function to close the master exercises list
+  const closeMasterExercisesList = () => {
+    setShowMasterExercisesList(false);
+  };
+
+  const fetchMasterExercises = async () => {
+    try {
+      const querySnapshot = await masterExercisesRef.get();
+      const masterExercises: Exercise[] = [];
+      querySnapshot.forEach(documentSnapshot => {
+        const data = documentSnapshot.data();
+        const exercise: Exercise = {
+          id: documentSnapshot.id,
+          title: data.title,
+          sets: data.sets,
+          repRange: data.repRange,
+          firstRange: data.firstRange,
+          secondRange: data.secondRange,
+          thirdRange: data.thirdRange,
+          forthRange: data.forthRange,
+          fifthRange: data.fifthRange,
+          sixthRange: data.sixthRange,
+          reference: data.reference,
+        };
+        // Only add the exercise to the masterExercises array if it is not already in the current day
+        if (!data.reference.includes(`${user}/workoutPlans/${weekSet}/days/${day}`)) {
+          masterExercises.push(exercise);
+        }
+      });
+      console.log(masterExercises)
+      setMasterExercises(masterExercises);
+    } catch (error) {
+      console.error("Error fetching master exercises:", error);
+    }
+  };
 
   
   async function refreshExercises() {
@@ -82,6 +131,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
 
   useEffect(() => {
     refreshExercises();
+    fetchMasterExercises();
   }, []);
 
 
@@ -137,6 +187,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         forthRange: forthRange,
         fifthRange: fifthRange,
         sixthRange: sixthRange,
+        reference: [`${user}/workoutPlans/${weekSet}/days/${day}`],
       });
   
       // Get the ID of the added exercise
@@ -175,6 +226,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const updateExercise = async () => {
     try {
       if (editingExercise) {
+        
         await exercisesRef.doc(editingExercise.id).update({
           title: newExerciseTitle,
           sets: value,
@@ -185,7 +237,6 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           fifthRange: fifthRange,
           sixthRange: sixthRange,
         });
-        console.log(`${editingExercise.id}`)
         await masterExercisesRef.doc(editingExercise.id).update({
           title: newExerciseTitle,
           sets: value,
@@ -208,15 +259,80 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const deleteExercise = async () => {
     try {
       if (editingExercise) {
+        const masterExerciseRef = masterExercisesRef.doc(editingExercise.id);
+        const masterExerciseDoc = await masterExerciseRef.get();
+        const masterExerciseData = masterExerciseDoc.data();
+        const masterExerciseReference: String[] = masterExerciseData?.reference || [];
+  
+        // Remove the current day's reference from the master exercise
+        const updatedMasterExerciseReference = masterExerciseReference.filter(ref => ref !== `${user}/workoutPlans/${weekSet}/days/${day}`);
+        
+        // Update the master exercise with the new reference
+        await masterExerciseRef.update({
+          title: editingExercise.title,
+          sets: editingExercise.sets,
+          firstRange: editingExercise.firstRange,
+          secondRange: editingExercise.secondRange,
+          thirdRange: editingExercise.thirdRange,
+          forthRange: editingExercise.forthRange,
+          fifthRange: editingExercise.fifthRange,
+          sixthRange: editingExercise.sixthRange,
+          reference: updatedMasterExerciseReference,
+        });
+  
+        // Delete the exercise from the current day
         await exercisesRef.doc(editingExercise.id).delete();
-        await masterExercisesRef.doc(editingExercise.id).delete();
         refreshExercises();
-        setShowAddExerciseModal(false);
-        setEditingExercise(null);
+
+      // Close the modal
+      setShowAddExerciseModal(false);
+      setEditingExercise(null);
 
       }
     } catch (error) {
       console.error("Error deleting exercise:", error);
+    }
+  };
+
+  const addMasterExerciseToCurrentDay = async (masterExercise: Exercise) => {
+    try { 
+      // Add the selected exercise to the current day
+      const existingReference = masterExercise.reference || [];
+      
+      await exercisesRef.doc(masterExercise.id).set({
+        title: masterExercise.title,
+        sets: masterExercise.sets,
+        repRange: masterExercise.repRange,
+        firstRange: masterExercise.firstRange,
+        secondRange: masterExercise.secondRange,
+        thirdRange: masterExercise.thirdRange,
+        forthRange: masterExercise.forthRange,
+        fifthRange: masterExercise.fifthRange,
+        sixthRange: masterExercise.sixthRange,
+        reference: [...existingReference, `${user}/workoutPlans/${weekSet}/days/${day}`],
+      });
+
+      await masterExercisesRef.doc(masterExercise.id).set({
+        title: newExerciseTitle,
+        sets: value,
+        repRange: newExerciseRepRange,
+        firstRange: firstRange,
+        secondRange: secondRange,
+        thirdRange: thirdRange,
+        forthRange: forthRange,
+        fifthRange: fifthRange,
+        sixthRange: sixthRange,
+        reference: [...existingReference, `${user}/workoutPlans/${weekSet}/days/${day}`],
+      });
+
+      closeMasterExercisesList();
+      // Update the state to refresh the exercises
+      refreshExercises();
+  
+      // Close the modal
+      setShowMasterExercisesModal(false);
+    } catch (error) {
+      console.error("Error adding master exercise to current day:", error);
     }
   };
 
@@ -225,16 +341,22 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   }
 
   return (
-    <View>
-      <Text>{`Details for ${day}`}</Text>
-      <Button title="Add Exercise" onPress={() => setShowAddExerciseModal(true)} />
+    <View style={styles.container}>
+      <Text style={styles.heading}>{`Details for ${day}`}</Text>
+      <TouchableOpacity
+        style={styles.plusButton}
+        onPress={() => setShowAddOptionModal(true)}
+      >
+        <Ionicons name="add" size={24} color="white" />
+      </TouchableOpacity>
+
       <FlatList
         data={exercises}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableHighlight onPress={() => handleEditExercise(item)}>
-            <View>
-              <Text>Exercise Title: {item.title}</Text>
+            <View style={styles.exerciseItem}>
+              <Text style={styles.exerciseTitle}>Exercise Title: {item.title}</Text>
               <Text>Sets: {item.sets}</Text>
               <Text>Rep Range: {item.repRange}</Text>
             </View>
@@ -296,10 +418,90 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           </View>
         </View>
       </Modal>
+      <Modal
+        visible={showAddOptionModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => {
+          setShowAddOptionModal(false);
+        }}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Button title="Add Exercise" onPress={() => {
+          setShowAddExerciseModal(true);
+          setShowAddOptionModal(false);
+        }} />
+        <Button title="Add Exercise from Master Exercise Directory" onPress={() => {
+          openMasterExercisesList();
+          setShowAddOptionModal(false);
+        }} />
+        <Button title="Cancel" onPress={() => {
+          setShowAddOptionModal(false);
+        }} />
+        </View>
+      </Modal>
+      {showMasterExercisesList && (
+        <Modal
+        visible={showMasterExercisesList}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeMasterExercisesList}
+      >
+        <MasterExercisesList
+          masterExercises={masterExercises}
+          addMasterExerciseToCurrentDay={addMasterExerciseToCurrentDay}
+          onClose={closeMasterExercisesList}
+        />
+      </Modal>
+      )}
     </View>
   );
 };
 
 export default DayDetailScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f0f0f0',
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  plusButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 50,
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  exerciseItem: {
+    backgroundColor: 'white',
+    padding: 16,
+    marginBottom: 16,
+    borderRadius: 8,
+    elevation: 2,
+  },
+  exerciseTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: 300,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    elevation: 5,
+  },
+  // ... (Add more styles as needed)
+});
