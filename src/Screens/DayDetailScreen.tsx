@@ -9,6 +9,9 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import { ScrollView } from 'react-native-gesture-handler';
 import MasterExercisesList from '../components/MasterExeciseList';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { LineChart } from 'react-native-chart-kit';
+import { Dimensions } from "react-native";
+
 
 
 // Define types for route and navigation props
@@ -45,7 +48,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const exercisesRef = userRef.collection('workoutPlans').doc(weekSet).collection("days").doc(day).collection('exercises');
   const masterExercisesRef = userRef.collection('masterExercises');
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState('3');
+  const [value, setValue] = useState(editingExercise? editingExercise.sets.toString() : '3');
   const [items, setItems] = useState([
     {label: '1 Set', value: '1'},
     {label: '2 Sets', value: '2'},
@@ -56,6 +59,32 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   ]);
 
   const [showMasterExercisesList, setShowMasterExercisesList] = useState(false);
+
+  // Temp data for line chart
+  const screenWidth = Dimensions.get("window").width;
+  const data = {
+    labels: ["January", "February", "March", "April", "May", "June"],
+    datasets: [
+      {
+        data: [20, 45, 28, 80, 99, 43],
+        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // optional
+        strokeWidth: 2 // optional
+      }
+    ],
+    legend: ["Rainy Days"] // optional
+  };
+
+  const chartConfig = {
+    backgroundGradientFrom: "#1E2923",
+    backgroundGradientFromOpacity: 0,
+    backgroundGradientTo: "#08130D",
+    backgroundGradientToOpacity: 0.5,
+    color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
+    strokeWidth: 2, // optional, default 3
+    barPercentage: 0.5,
+    useShadowColorFromDataset: false // optional
+  };
+
 
   // Function to open the master exercises list
   const openMasterExercisesList = () => {
@@ -172,6 +201,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
       setForthRange(editingExercise.forthRange);
       setFifthRange(editingExercise.fifthRange);
       setSixthRange(editingExercise.sixthRange);
+      setValue(editingExercise.sets.toString());
     }
   } , [editingExercise]);
 
@@ -226,17 +256,25 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const updateExercise = async () => {
     try {
       if (editingExercise) {
-        
-        await exercisesRef.doc(editingExercise.id).update({
-          title: newExerciseTitle,
-          sets: value,
-          firstRange: firstRange,
-          secondRange: secondRange,
-          thirdRange: thirdRange,
-          forthRange: forthRange,
-          fifthRange: fifthRange,
-          sixthRange: sixthRange,
-        });
+        await Promise.all(
+          editingExercise.reference.map(async (reference) => {
+            await firestore()
+              .collection('users')
+              .doc(reference)
+              .collection('exercises')
+              .doc(editingExercise.id)
+              .update({
+                title: newExerciseTitle,
+                sets: value,
+                firstRange: firstRange,
+                secondRange: secondRange,
+                thirdRange: thirdRange,
+                forthRange: forthRange,
+                fifthRange: fifthRange,
+                sixthRange: sixthRange,
+              });
+          })
+        );
         await masterExercisesRef.doc(editingExercise.id).update({
           title: newExerciseTitle,
           sets: value,
@@ -363,14 +401,16 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           </TouchableHighlight>
         )}
       />
+
       <Modal
         visible={showAddExerciseModal}
         animationType="slide"
-        transparent={true}
+        transparent={false}
         onRequestClose={() => {
           setShowAddExerciseModal(false);
           setEditingExercise(null);
         }}
+        presentationStyle='pageSheet'
       >
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <View style={{ width: 300, padding: 20, backgroundColor: 'white' }}>
@@ -403,6 +443,15 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
                 }}
               />
             ))}
+            <LineChart
+              data={data}
+              width={screenWidth}
+              height={220}
+              chartConfig={chartConfig}
+            />
+            
+
+
             <Button title={editingExercise ? 'Update' : 'Add'} onPress={editingExercise ? updateExercise : addExercise} />
             {editingExercise && (
               <Button title="Delete" onPress={deleteExercise} color="red" />
@@ -421,10 +470,11 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
       <Modal
         visible={showAddOptionModal}
         animationType="slide"
-        transparent={true}
+        transparent={false}
         onRequestClose={() => {
           setShowAddOptionModal(false);
         }}
+        presentationStyle='pageSheet'
       >
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Button title="Add Exercise" onPress={() => {

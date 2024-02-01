@@ -1,9 +1,10 @@
-import { View, Text, FlatList, TouchableHighlight, Button, TextInput, Modal } from 'react-native';
+import { View, Text, FlatList, TouchableHighlight, Button, TextInput, Modal, StyleSheet } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import { FIREBASE_AUTH } from '../services/FirebaseConfig';
 import { Exercise } from '../navigations/types';
 import DropDownPicker from 'react-native-dropdown-picker';
+import { LineChart } from 'react-native-chart-kit';
 
 const MasterExerciseDirectoryScreen = () => {
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
@@ -23,7 +24,7 @@ const MasterExerciseDirectoryScreen = () => {
   const [sixthRange, setSixthRange] = useState(0);
   const [repRange, setRepRange] = useState([firstRange, secondRange, thirdRange, forthRange, fifthRange, sixthRange]); 
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState('3');
+  const [value, setValue] = useState(editingExercise? editingExercise.sets : '3');
   const [items, setItems] = useState([
     {label: '1 Set', value: '1'},
     {label: '2 Sets', value: '2'},
@@ -115,9 +116,8 @@ const MasterExerciseDirectoryScreen = () => {
 
   const updateExercise = async () => {
     try {
-      console.log("here1");
       if (editingExercise) {
-        console.log(`${editingExercise.id}`)
+        console.log('editingExercise:', newExerciseTitle);
         await masterExerciseDirectoryRef.doc(editingExercise.id).update({
           title: newExerciseTitle,
           sets: value,
@@ -130,7 +130,6 @@ const MasterExerciseDirectoryScreen = () => {
         });
         await Promise.all(
           editingExercise.reference.map(async (reference) => {
-            console.log(reference);
             await firestore()
               .collection('users')
               .doc(reference)
@@ -174,16 +173,16 @@ const MasterExerciseDirectoryScreen = () => {
       setForthRange(editingExercise.forthRange);
       setFifthRange(editingExercise.fifthRange);
       setSixthRange(editingExercise.sixthRange);
+      setValue(editingExercise.sets.toString());
     }
   } , [editingExercise]);
-
   const handleEditExercise = (exercise: Exercise) => {
     setEditingExercise(exercise);
     setShowAddExerciseModal(true);
   };
 
   return (
-    <View>
+    <View style={styles.container}>
       <Text>MasterExerciseDirectoryScreen</Text>
       <FlatList
         data={masterExerciseDirectory}
@@ -191,8 +190,8 @@ const MasterExerciseDirectoryScreen = () => {
           <TouchableHighlight
             onPress={() => handleEditExercise(item)}
           >
-            <View>
-              <Text>Exercise Title: {item.title}</Text>
+            <View style={styles.exerciseItem}>
+              <Text style={styles.exerciseTitle}>Exercise Title: {item.title}</Text>
               <Text>Sets: {item.sets}</Text>
               <Text>Rep Range: {item.repRange}</Text>
             </View>
@@ -257,3 +256,22 @@ const MasterExerciseDirectoryScreen = () => {
 };
 
 export default MasterExerciseDirectoryScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f0f0f0',
+  },
+  exerciseItem: {
+    backgroundColor: 'white',
+    padding: 16,
+    marginBottom: 16,
+    borderRadius: 8,
+    elevation: 2,
+  },
+  exerciseTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});

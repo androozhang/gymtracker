@@ -6,6 +6,7 @@ import Day from '../components/Day';
 import { HomeStackNavigationProp } from '../navigations/types';
 import DropDownPicker from 'react-native-dropdown-picker';
 
+
 interface RouterProps {
   navigation: HomeStackNavigationProp;
 }
@@ -40,6 +41,7 @@ const HomeScreen = ({ navigation }: RouterProps) => {
         labelStyle={styles.dropdownLabel}
         dropDownContainerStyle={styles.dropdownListContainer}
       />
+
       <FlatList
         data={days}
         renderItem={({ item }) => renderDayCard(item)}

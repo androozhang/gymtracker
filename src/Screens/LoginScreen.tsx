@@ -41,6 +41,7 @@ const LoginScreen = () => {
         <> 
           <Button title="Login" onPress={signIn} />
           <Button title="Create Account" onPress={() => navigation.navigate("Register")} />
+          <Button title="Forgot Password" onPress={() => navigation.navigate("ResetPassword")} />
         </>
     )}
         </KeyboardAvoidingView>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ActivityIndicator, Button, KeyboardAvoidingView } from 'react-native';
-import { User, createUserWithEmailAndPassword, getAuth, sendEmailVerification } from 'firebase/auth';
+import { User, createUserWithEmailAndPassword, getAuth, sendEmailVerification, signOut } from 'firebase/auth';
 import { collection, doc, setDoc, getFirestore } from 'firebase/firestore';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/FirebaseConfig';
 import { useNavigation } from '@react-navigation/native';
@@ -17,12 +17,17 @@ const RegisterScreen = () => {
   const signUp = async () => {
     setLoading(true);
     try {
+      const auth = getAuth();
       const response = await createUserWithEmailAndPassword(auth, email, password);
       const user: User | null = response.user;
   
       if (user) {
-        await sendEmailVerification(auth.currentUser!); 
-        auth.signOut();
+        // Send email verification
+        await sendEmailVerification(user);
+  
+        // Sign out the user to prevent automatic sign-in
+        await signOut(auth);
+  
         const usersCollection = collection(getFirestore(), 'users');
         const userDocRef = doc(usersCollection, user.uid);
   
@@ -44,6 +49,7 @@ const RegisterScreen = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <View style={style.container}>

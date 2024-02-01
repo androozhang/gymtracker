@@ -13,6 +13,7 @@ import DayDetailScreen from './src/screens/DayDetailScreen';
 import type { RootStackParamList } from './src/navigations/types';
 import MasterExerciseDirectoryScreen from './src/screens/MasterExerciseDirectoryScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
+import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
 
 // Create navigators with specified param lists
 const HomeStack = createNativeStackNavigator<RootStackParamList>();
@@ -63,6 +64,11 @@ function AuthStackScreen() {
         name="Register"
         component={RegisterScreen}
         options={{ title: 'Create Account' }}
+      />
+      <AuthStack.Screen
+        name="ResetPassword"
+        component={ResetPasswordScreen}
+        options={{ title: 'Reset Password' }}
       />
     </AuthStack.Navigator>
 

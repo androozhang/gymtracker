@@ -6,6 +6,7 @@ export type RootStackParamList = {
   DayDetail: { day: string, weekSet: string};
   Login: undefined;
   Register: undefined;
+  ResetPassword: undefined;
   Profile: undefined;
   MasterExerciseDirectory: undefined;
 };
