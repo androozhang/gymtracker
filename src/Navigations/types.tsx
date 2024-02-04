@@ -22,6 +22,14 @@ export type Exercise = {
     repRange: string;
   }>;
   reference: string[];
+  history: Array<{
+    date: string;
+    setDetail: Array<{
+      set: number;
+      weight: number;
+      repRange: string;
+    }>;
+  }>;
   // ... other properties
 };
 

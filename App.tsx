@@ -15,7 +15,7 @@ import MasterExerciseDirectoryScreen from './src/screens/MasterExerciseDirectory
 import RegisterScreen from './src/screens/RegisterScreen';
 import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
 import { Provider } from 'react-redux';
-import { store } from './src/redux/store';
+import { store } from './src/store/store';
 
 // Create navigators with specified param lists
 const HomeStack = createNativeStackNavigator<RootStackParamList>();

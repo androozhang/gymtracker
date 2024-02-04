@@ -75,6 +75,7 @@ const MasterExerciseDirectoryScreen = () => {
           repRange: data.repRange,
           setDetail: data.setDetail, 
           reference: data.reference,
+          history: data.history,
         };  
         console.log(data.setDetail);
         masterExercises.push(exercise);
@@ -85,7 +86,28 @@ const MasterExerciseDirectoryScreen = () => {
     }
   };
   
-  
+  const handleDeleteExercise = async () => {
+    try {
+      if (editingExercise) {
+        await Promise.all(
+          editingExercise.reference.map(async (reference) => {
+            await firestore()
+              .collection('users')
+              .doc(reference)
+              .collection('exercises')
+              .doc(editingExercise.id)
+              .delete();
+          })
+        );
+        await masterExerciseDirectoryRef.doc(editingExercise.id).delete();
+        fetchMasterExerciseDirectory();
+        setShowAddExerciseModal(false);
+        setEditingExercise(null);
+      }
+    } catch (error) {
+      console.error("Error deleting exercise:", error);
+    }
+  }
 
   const updateExercise = async () => {
     try {
@@ -153,7 +175,8 @@ const MasterExerciseDirectoryScreen = () => {
       <Modal
         visible={showAddExerciseModal}
         animationType="slide"
-        transparent={true}
+        transparent={false}
+        presentationStyle='pageSheet'
         onRequestClose={() => {
           setShowAddExerciseModal(false);
           setEditingExercise(null);
@@ -174,23 +197,25 @@ const MasterExerciseDirectoryScreen = () => {
                 </Text>
                 <TextInput
                   style={styles.setInput}
-                  placeholder={`Reps`}
-                  value={setDetail.repRange}
-                  onChangeText={(text) => updateRepRange(index, text)}
-                />
-                
-                <TextInput
-                  style={styles.setInput}
                   placeholder={`Weight`}
                   value={setDetail.weight.toString()}
                   onChangeText={(text) => updateWeight(index, text)}
                 />
+                 <Text style={styles.label}>lbs</Text>
+                <TextInput
+                  style={styles.setInput}
+                  placeholder={`Reps`}
+                  value={setDetail.repRange}
+                  onChangeText={(text) => updateRepRange(index, text)}
+                />
+                <Text style={styles.label}>reps</Text>
                 <TouchableOpacity onPress={() => handleDeleteSet(index)}>
                   <Ionicons name="trash-bin" size={24} color="red" />
                 </TouchableOpacity>
               </View>
             ))}
             <Button title={editingExercise ? 'Update' : 'Add'} onPress={editingExercise ? updateExercise : addExercise} />
+            <Button title="Delete" onPress={() => handleDeleteExercise()} />
             <Button title="Cancel" onPress={() => {
               setShowAddExerciseModal(false);
               setEditingExercise(null);
@@ -240,5 +265,9 @@ const styles = StyleSheet.create({
   },
   deleteIcon: {
     marginLeft: 10,
+  },
+  label: {
+    fontSize: 16,
+    paddingRight: 10,
   },
 });

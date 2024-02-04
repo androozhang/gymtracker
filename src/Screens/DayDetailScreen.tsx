@@ -13,7 +13,8 @@ import { LineChart } from 'react-native-chart-kit';
 import { Dimensions } from "react-native";
 import ExerciseChart from '../components/ExerciseChart';
 import { useDispatch, useSelector } from 'react-redux';
-import { setExercises, setEditingExercise } from '../redux/exercisesSlice';
+import { AppDispatch } from '../store/store';
+import { setExercises, setEditingExercise, selectExercises } from '../store/exercisesSlice';
 
 
 // Define types for route and navigation props
@@ -27,15 +28,15 @@ type DayDetailScreenProps = {
 };
 
 const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { day, weekSet } = route.params;
-  const [loading, setLoading] = useState(true);
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [showAddExerciseModal, setShowAddExerciseModal] = useState(false);
   const [showAddOptionModal, setShowAddOptionModal] = useState(false);
   const [showMasterExercisesModal, setShowMasterExercisesModal] = useState(false);
   const [masterExercises, setMasterExercises] = useState<Exercise[]>([]);
-  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [newExerciseTitle, setNewExerciseTitle] = useState(editingExercise ? editingExercise.title : '');
   const [newExerciseSets, setNewExerciseSets] = useState(editingExercise ? editingExercise.sets : 3);
   const [newExerciseRepRange, setNewExerciseRepRange] = useState('8');  
@@ -56,6 +57,8 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const updateRepRange = (index: number, text: string) => {
     const newSetDetail = [...setDetail];
     newSetDetail[index].repRange = text;
+    console.log("text", text)
+    console.log("newsetDetail[index].repRange", newSetDetail[index].repRange)
     setSetDetail(newSetDetail);
   };
   const updateWeight = (index: number, text: string) => {
@@ -67,8 +70,6 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
     const newSetDetail = setDetail.filter((set, i) => i !== index);
     setSetDetail(newSetDetail);
   };
-
-
 
   const [showMasterExercisesList, setShowMasterExercisesList] = useState(false);
   const openMasterExercisesList = () => {
@@ -91,6 +92,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           repRange: data.repRange,
           setDetail: data.setDetail || [{ set: 1, weight: 0, repRange: `10` }],  // Set default value if setDetail is not present
           reference: data.reference,
+          history: data.history,
         };
         // Only add the exercise to the masterExercises array if it is not already in the current day
         if (!data.reference.includes(`${user}/workoutPlans/${weekSet}/days/${day}`)) {
@@ -118,6 +120,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           repRange: data.repRange,
           setDetail: data.setDetail || [{ set: 1, weight: 0, repRange: `10` }],  // Set default value if setDetail is not present
           reference: data.reference,
+          history: data.history,
         };
         exercises.push(exercise);
       });
@@ -146,6 +149,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   
 
   const addExercise = async () => {
+    const currentDate = new Date().toISOString().split('T')[0];
     try {
       const exerciseRef = await exercisesRef.add({
         title: newExerciseTitle,
@@ -153,6 +157,11 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         repRange: newExerciseRepRange,
         setDetail: setDetail,  // Add the setDetail to the exercise
         reference: [`${user}/workoutPlans/${weekSet}/days/${day}`],
+        history: [{
+          date: currentDate,
+          sets: newExerciseSets,
+          setDetail: setDetail,
+        }],
       });
 
       // Get the ID of the added exercise
@@ -165,6 +174,11 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         repRange: newExerciseRepRange,
         setDetail: setDetail,  // Add the setDetail to the exercise
         reference: [`${user}/workoutPlans/${weekSet}/days/${day}`],
+        history: firestore.FieldValue.arrayUnion({
+          date: currentDate,
+          sets: newExerciseSets,
+          setDetail: setDetail,
+        }),
       });
 
       setNewExerciseTitle('');
@@ -190,6 +204,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
 
   const updateExercise = async () => {
     try {
+      const currentDate = new Date().toISOString().split('T')[0];
       if (editingExercise) {
         await Promise.all(
           editingExercise.reference.map(async (reference) => {
@@ -202,6 +217,11 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
                 title: newExerciseTitle,
                 sets: value,
                 setDetail: setDetail,  
+                history: firestore.FieldValue.arrayUnion({
+                  date: currentDate,
+                  sets: newExerciseSets,
+                  setDetail: setDetail,
+                }),
               });
           })
         );
@@ -209,6 +229,11 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           title: newExerciseTitle,
           sets: value,
           setDetail: setDetail, 
+          history: firestore.FieldValue.arrayUnion({
+            date: currentDate,
+            sets: newExerciseSets,
+            setDetail: setDetail,
+          }),
         });
         refreshExercises();
         setShowAddExerciseModal(false);
@@ -350,7 +375,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
                 </TouchableOpacity>
               </View>
             ))}
-            {editingExercise ? <ExerciseChart setDetail={editingExercise.setDetail} /> : null}
+            {editingExercise ? <ExerciseChart history={editingExercise.history} /> : null}
             
 
             <Button title="Add Set" onPress={addSet} />
@@ -383,6 +408,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
       >
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Button title="Add Exercise" onPress={() => {
+          setEditingExercise(null);
           setShowAddExerciseModal(true);
           setNewExerciseTitle('');
           setNewExerciseSets(3);
