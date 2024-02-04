@@ -15,14 +15,14 @@ export type Exercise = {
   id: string;
   title: string;
   sets: number;
-  repRange: number;
-  firstRange: number;
-  secondRange: number;
-  thirdRange: number;
-  forthRange: number;
-  fifthRange: number;
-  sixthRange: number;
+  repRange: string;
+  setDetail: Array<{
+    set: number;
+    weight: number;
+    repRange: string;
+  }>;
   reference: string[];
+  // ... other properties
 };
 
 

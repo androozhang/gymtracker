@@ -14,6 +14,8 @@ import type { RootStackParamList } from './src/navigations/types';
 import MasterExerciseDirectoryScreen from './src/screens/MasterExerciseDirectoryScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
+import { Provider } from 'react-redux';
+import { store } from './src/redux/store';
 
 // Create navigators with specified param lists
 const HomeStack = createNativeStackNavigator<RootStackParamList>();
@@ -86,15 +88,17 @@ export default function App() {
   }, []);
 
   return (
-    <NavigationContainer>
-      {user ? (
-        <Tab.Navigator initialRouteName='Home'>
-          <Tab.Screen name='Home' component={HomeStackScreen} options={{ headerShown: false }} />
-          <Tab.Screen name='Profile' component={ProfileStackScreen} options={{ headerShown: false }} />
-        </Tab.Navigator>
-      ) : (
-        <AuthStackScreen />
-      )}
-    </NavigationContainer>
+    <Provider store={store}>
+      <NavigationContainer>
+        {user ? (
+          <Tab.Navigator initialRouteName='Home'>
+            <Tab.Screen name='Home' component={HomeStackScreen} options={{ headerShown: false }} />
+            <Tab.Screen name='Profile' component={ProfileStackScreen} options={{ headerShown: false }} />
+          </Tab.Navigator>
+        ) : (
+          <AuthStackScreen />
+        )}
+      </NavigationContainer>
+    </Provider>
   );
 }

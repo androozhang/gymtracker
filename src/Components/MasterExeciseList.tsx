@@ -13,7 +13,6 @@ const MasterExercisesList: FC<MasterExercisesListProps> = ({
   addMasterExerciseToCurrentDay,
   onClose,
 }) => {
-  console.log('Rendering MasterExercisesList with the following data:', masterExercises);
 
   return (
     <View style={styles.container}>
