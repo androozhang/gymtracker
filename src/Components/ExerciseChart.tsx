@@ -27,18 +27,11 @@ const ExerciseChart: React.FC<ExerciseChartProps> = ({ history }) => {
         useShadowColorFromDataset: false // optional
       };
 
-      const data = {
-        labels: history.map((item) => item.date),
-        datasets: [
-          {
-            data: history.map((item) => item.setDetail.reduce((acc, set) => acc + set.weight, 0)),
-          }
-        ]
-      };
+      
     
       return (
         <View>
-          <LineChart data={data} width={screenWidth} height={220} chartConfig={chartConfig} />
+          
         </View>
       );
     };

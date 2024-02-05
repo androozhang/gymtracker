@@ -33,6 +33,12 @@ export type Exercise = {
   // ... other properties
 };
 
+export type HistoryEntry = {
+  date: string;
+  sets: number;
+  setDetail: Array<any>; // You might want to replace `any` with a more specific type if possible
+};
+
 
 export type HomeStackNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 export type ProfileStackNavigationProp = StackNavigationProp<RootStackParamList, 'Profile'>;

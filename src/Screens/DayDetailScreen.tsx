@@ -5,16 +5,10 @@ import { FIREBASE_AUTH } from '../services/FirebaseConfig';
 import { Exercise, RootStackParamList } from '../navigations/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
-import DropDownPicker from 'react-native-dropdown-picker';
-import { ScrollView } from 'react-native-gesture-handler';
 import MasterExercisesList from '../components/MasterExeciseList';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LineChart } from 'react-native-chart-kit';
-import { Dimensions } from "react-native";
 import ExerciseChart from '../components/ExerciseChart';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch } from '../store/store';
-import { setExercises, setEditingExercise, selectExercises } from '../store/exercisesSlice';
+import { HistoryEntry } from '../navigations/types';
 
 
 // Define types for route and navigation props
@@ -28,7 +22,6 @@ type DayDetailScreenProps = {
 };
 
 const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
-  const dispatch = useDispatch<AppDispatch>();
   const { day, weekSet } = route.params;
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +38,8 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const exercisesRef = userRef.collection('workoutPlans').doc(weekSet).collection("days").doc(day).collection('exercises');
   const masterExercisesRef = userRef.collection('masterExercises');
   const [value, setValue] = useState(editingExercise? editingExercise.sets.toString() : '3');
+  const [visibleData, setVisibleData] = useState<HistoryEntry[]>([]);
+  const [allData, setAllData] = useState<HistoryEntry[]>([]);
   
 
   const [setDetail, setSetDetail] = useState([
@@ -95,7 +90,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           history: data.history,
         };
         // Only add the exercise to the masterExercises array if it is not already in the current day
-        if (!data.reference.includes(`${user}/workoutPlans/${weekSet}/days/${day}`)) {
+        if (data.reference && !data.reference.includes(`${user}/workoutPlans/${weekSet}/days/${day}`)) {
           masterExercises.push(exercise);
         }
       });
@@ -157,16 +152,11 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         repRange: newExerciseRepRange,
         setDetail: setDetail,  // Add the setDetail to the exercise
         reference: [`${user}/workoutPlans/${weekSet}/days/${day}`],
-        history: [{
-          date: currentDate,
-          sets: newExerciseSets,
-          setDetail: setDetail,
-        }],
       });
-
+  
       // Get the ID of the added exercise
       const exerciseId = exerciseRef.id;
-
+  
       // Add exercise to masterExercisesRef with the same ID
       await masterExercisesRef.doc(exerciseId).set({
         title: newExerciseTitle,
@@ -174,18 +164,33 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         repRange: newExerciseRepRange,
         setDetail: setDetail,  // Add the setDetail to the exercise
         reference: [`${user}/workoutPlans/${weekSet}/days/${day}`],
-        history: firestore.FieldValue.arrayUnion({
-          date: currentDate,
-          sets: newExerciseSets,
-          setDetail: setDetail,
-        }),
       });
-
+  
+      // Add the exercise to the day's subcollection under the "exercises" collection
+      const dayRef = userRef.collection('workoutPlans').doc(weekSet).collection("days").doc(day);
+      const exerciseHistoryRef = dayRef.collection('exercises').doc(exerciseId);
+  
+      // Add the exercise to the day's subcollection
+      await exerciseHistoryRef.set({
+        title: newExerciseTitle,
+        sets: value,
+        repRange: newExerciseRepRange,
+        setDetail: setDetail,
+        reference: [`${user}/workoutPlans/${weekSet}/days/${day}`],
+      });
+  
+      // Add history entry to the "history" subcollection
+      await exerciseHistoryRef.collection('history').doc(currentDate).set({
+        date: currentDate,
+        sets: newExerciseSets,
+        setDetail: setDetail,
+      });
+  
       setNewExerciseTitle('');
       setNewExerciseSets(3);
       setNewExerciseRepRange('8-12');
       setSetDetail([{ set: 1, weight: 0, repRange: `10` }]);  // Reset setDetail
-
+  
       refreshExercises();
       setShowAddExerciseModal(false);
     } catch (error) {
@@ -205,36 +210,72 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const updateExercise = async () => {
     try {
       const currentDate = new Date().toISOString().split('T')[0];
-      if (editingExercise) {
+      if (editingExercise && editingExercise.reference) {
         await Promise.all(
           editingExercise.reference.map(async (reference) => {
-            await firestore()
+            const exerciseDocRef = firestore()
               .collection('users')
               .doc(reference)
               .collection('exercises')
-              .doc(editingExercise.id)
-              .update({
+              .doc(editingExercise.id);
+             
+            const historyEntryRef = exerciseDocRef.collection('history').doc(currentDate);
+            // Check if there's an entry for the current day
+            const existingEntrySnapshot = await historyEntryRef.get();
+  
+            if (existingEntrySnapshot.exists) {
+              // Update the existing entry for the current day
+              await historyEntryRef.update({
+                date: currentDate,
+                sets: newExerciseSets,
+                setDetail: setDetail,
+              });
+            } else {
+              // Add a new entry for the current day
+              await exerciseDocRef.update({
                 title: newExerciseTitle,
                 sets: value,
-                setDetail: setDetail,  
-                history: firestore.FieldValue.arrayUnion({
-                  date: currentDate,
-                  sets: newExerciseSets,
-                  setDetail: setDetail,
-                }),
+                setDetail: setDetail,
               });
+  
+              await historyEntryRef.set({
+                date: currentDate,
+                sets: newExerciseSets,
+                setDetail: setDetail,
+              });
+            }
           })
         );
-        await masterExercisesRef.doc(editingExercise.id).update({
-          title: newExerciseTitle,
-          sets: value,
-          setDetail: setDetail, 
-          history: firestore.FieldValue.arrayUnion({
+  
+        // Update the master exercise
+        const masterExerciseRef = masterExercisesRef.doc(editingExercise.id);
+        const masterHistoryEntryRef = masterExerciseRef.collection('history').doc(currentDate);
+  
+        // Check if there's an entry for the current day in the master exercise
+        const existingMasterEntrySnapshot = await masterHistoryEntryRef.get();
+  
+        if (existingMasterEntrySnapshot.exists) {
+          // Update the existing entry for the master exercise
+          await masterHistoryEntryRef.update({
             date: currentDate,
             sets: newExerciseSets,
             setDetail: setDetail,
-          }),
-        });
+          });
+        } else {
+          // Add a new entry for the current day for the master exercise
+          await masterExerciseRef.update({
+            title: newExerciseTitle,
+            sets: value,
+            setDetail: setDetail,
+          });
+  
+          await masterHistoryEntryRef.set({
+            date: currentDate,
+            sets: newExerciseSets,
+            setDetail: setDetail,
+          });
+        }
+  
         refreshExercises();
         setShowAddExerciseModal(false);
         setEditingExercise(null);
@@ -243,6 +284,8 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
       console.error("Error updating exercise:", error);
     }
   };
+  
+  
 
 
   const deleteExercise = async () => {
@@ -375,9 +418,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
                 </TouchableOpacity>
               </View>
             ))}
-            {editingExercise ? <ExerciseChart history={editingExercise.history} /> : null}
-            
-
+            {editingExercise ? <ExerciseChart history={visibleData}/> : null}
             <Button title="Add Set" onPress={addSet} />
 
 
