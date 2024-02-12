@@ -5,7 +5,7 @@ import { FIREBASE_AUTH } from '../services/FirebaseConfig';
 import Day from '../components/Day';
 import { HomeStackNavigationProp } from '../navigations/types';
 import DropDownPicker from 'react-native-dropdown-picker';
-
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 interface RouterProps {
   navigation: HomeStackNavigationProp;
@@ -40,6 +40,7 @@ const HomeScreen = ({ navigation }: RouterProps) => {
         style={styles.dropdown}
         labelStyle={styles.dropdownLabel}
         dropDownContainerStyle={styles.dropdownListContainer}
+        TickIconComponent={({style})=><Ionicons name="add" size={24} color="white" />}  
       />
 
       <FlatList
@@ -84,11 +85,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
+    height: 60,
   },
   dayText: {
     fontSize: 16,
     justifyContent: 'center',
   },
+  
 });
 
 export default HomeScreen;

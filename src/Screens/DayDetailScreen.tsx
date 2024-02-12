@@ -8,7 +8,7 @@ import { RouteProp } from '@react-navigation/native';
 import MasterExercisesList from '../components/MasterExeciseList';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import ExerciseChart from '../components/ExerciseChart';
-import { HistoryEntry } from '../navigations/types';
+import { HistoryEntry, SetDetail } from '../navigations/types';
 
 
 // Define types for route and navigation props
@@ -40,7 +40,39 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const [value, setValue] = useState(editingExercise? editingExercise.sets.toString() : '3');
   const [visibleData, setVisibleData] = useState<HistoryEntry[]>([]);
   const [allData, setAllData] = useState<HistoryEntry[]>([]);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+
+  const fetchHistory = async () => {
+    try {
+      if (editingExercise) {
+        const querySnapshot = await exercisesRef.doc(editingExercise.id).collection("history").get();
+        const history: HistoryEntry[] = [];
   
+        querySnapshot.forEach(documentSnapshot => {
+          const data = documentSnapshot.data();
+          const entry: HistoryEntry = {
+            date: data.date,
+            sets: data.sets,
+            setDetail: data.setDetail,
+          };
+          history.push(entry);
+        });
+
+        setAllData(history);
+        setVisibleData(history);
+        setInitialDataLoaded(true);
+      }
+    } catch (error) {
+      console.error("Error fetching history:", error);
+    }
+  };
+  
+
+  useEffect(() => {
+    if (editingExercise) {
+      fetchHistory();
+    }
+  }, [editingExercise]);
 
   const [setDetail, setSetDetail] = useState([
     { set: 1, weight: 0, repRange: `10` }, // Initial set
@@ -87,7 +119,6 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           repRange: data.repRange,
           setDetail: data.setDetail || [{ set: 1, weight: 0, repRange: `10` }],  // Set default value if setDetail is not present
           reference: data.reference,
-          history: data.history,
         };
         // Only add the exercise to the masterExercises array if it is not already in the current day
         if (data.reference && !data.reference.includes(`${user}/workoutPlans/${weekSet}/days/${day}`)) {
@@ -115,7 +146,6 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           repRange: data.repRange,
           setDetail: data.setDetail || [{ set: 1, weight: 0, repRange: `10` }],  // Set default value if setDetail is not present
           reference: data.reference,
-          history: data.history,
         };
         exercises.push(exercise);
       });
@@ -164,6 +194,12 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         repRange: newExerciseRepRange,
         setDetail: setDetail,  // Add the setDetail to the exercise
         reference: [`${user}/workoutPlans/${weekSet}/days/${day}`],
+      });
+
+      await masterExercisesRef.doc(exerciseId).collection('history').doc(currentDate).set({
+        date: currentDate,
+        sets: newExerciseSets,
+        setDetail: setDetail,
       });
   
       // Add the exercise to the day's subcollection under the "exercises" collection
@@ -230,11 +266,18 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
                 sets: newExerciseSets,
                 setDetail: setDetail,
               });
+
+              await exerciseDocRef.update({
+                title: newExerciseTitle,
+                sets: newExerciseSets,
+                setDetail: setDetail,
+              });
+
             } else {
               // Add a new entry for the current day
               await exerciseDocRef.update({
                 title: newExerciseTitle,
-                sets: value,
+                sets: newExerciseSets,
                 setDetail: setDetail,
               });
   
@@ -253,7 +296,6 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   
         // Check if there's an entry for the current day in the master exercise
         const existingMasterEntrySnapshot = await masterHistoryEntryRef.get();
-  
         if (existingMasterEntrySnapshot.exists) {
           // Update the existing entry for the master exercise
           await masterHistoryEntryRef.update({
@@ -261,6 +303,14 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
             sets: newExerciseSets,
             setDetail: setDetail,
           });
+
+          await masterExerciseRef.update({
+            title: newExerciseTitle,
+            sets: value,
+            setDetail: setDetail,
+          });
+          console.log(masterExerciseRef.path)
+
         } else {
           // Add a new entry for the current day for the master exercise
           await masterExerciseRef.update({
@@ -354,12 +404,6 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>{`Details for ${day}`}</Text>
-      <TouchableOpacity
-        style={styles.plusButton}
-        onPress={() => setShowAddOptionModal(true)}
-      >
-        <Ionicons name="add" size={24} color="white" />
-      </TouchableOpacity>
 
       <FlatList
         data={exercises}
@@ -368,12 +412,22 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           <TouchableHighlight onPress={() => handleEditExercise(item)}>
             <View style={styles.exerciseItem}>
               <Text style={styles.exerciseTitle}>Exercise Title: {item.title}</Text>
-              <Text>Sets: {item.sets}</Text>
-              <Text>Rep Range: {item.repRange}</Text>
+              <Text>Sets: {item.setDetail.length}</Text>
+              <Text>Weight: {item.setDetail[0].weight}lbs x {item.setDetail[0].repRange}-{item.setDetail[item.setDetail.length - 1].repRange}</Text>
             </View>
           </TouchableHighlight>
         )}
       />
+      <View style={styles.addBox}>
+      <TouchableOpacity
+        style={styles.plusButton}
+        onPress={() => setShowAddOptionModal(true)}
+      >
+        <Ionicons name="add" size={24} color="white" />
+      </TouchableOpacity>
+      </View>
+
+
 
       <Modal
         visible={showAddExerciseModal}
@@ -557,5 +611,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingRight: 10,
   },
+  addBox: {
+    alignItems: 'center',
+  }
   // ... (Add more styles as needed)
 });

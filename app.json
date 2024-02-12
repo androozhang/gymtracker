@@ -17,7 +17,8 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.androozhang.gymtracker",
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "usesAppleSignIn": true
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -28,6 +29,8 @@
       "package": "com.androozhang.gymtracker"
     },
     "plugins": [
+      "expo-apple-authentication",
+      "@react-native-google-signin/google-signin",
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "@react-native-firebase/perf",

@@ -22,23 +22,20 @@ export type Exercise = {
     repRange: string;
   }>;
   reference: string[];
-  history: Array<{
-    date: string;
-    setDetail: Array<{
-      set: number;
-      weight: number;
-      repRange: string;
-    }>;
-  }>;
   // ... other properties
 };
 
 export type HistoryEntry = {
   date: string;
   sets: number;
-  setDetail: Array<any>; // You might want to replace `any` with a more specific type if possible
+  setDetail: SetDetail[];
 };
 
+export interface SetDetail {
+  set: number;
+  weight: number;
+  repRange: string;
+};
 
 export type HomeStackNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 export type ProfileStackNavigationProp = StackNavigationProp<RootStackParamList, 'Profile'>;

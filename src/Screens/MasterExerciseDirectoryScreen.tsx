@@ -2,10 +2,9 @@ import { View, Text, FlatList, TouchableHighlight, Button, TextInput, Modal, Sty
 import React, { useEffect, useState } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import { FIREBASE_AUTH } from '../services/FirebaseConfig';
-import { Exercise } from '../navigations/types';
-import DropDownPicker from 'react-native-dropdown-picker';
-import { LineChart } from 'react-native-chart-kit';
+import { Exercise, HistoryEntry } from '../navigations/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import ExerciseChart from '../components/ExerciseChart';
 
 const MasterExerciseDirectoryScreen = () => {
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
@@ -17,6 +16,41 @@ const MasterExerciseDirectoryScreen = () => {
   const [newExerciseTitle, setNewExerciseTitle] = useState(editingExercise ? editingExercise.title : '');
   const [newExerciseSets, setNewExerciseSets] = useState(editingExercise ? editingExercise.sets : 3);
   const [newExerciseRepRange, setNewExerciseRepRange] = useState('8-12');  
+  const [visibleData, setVisibleData] = useState<HistoryEntry[]>([]);
+  const [allData, setAllData] = useState<HistoryEntry[]>([]);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+
+  const fetchHistory = async () => {
+    try {
+      if (editingExercise) {
+        const querySnapshot = await masterExerciseDirectoryRef.doc(editingExercise.id).collection("history").get();
+        const history: HistoryEntry[] = [];
+  
+        querySnapshot.forEach(documentSnapshot => {
+          const data = documentSnapshot.data();
+          const entry: HistoryEntry = {
+            date: data.date,
+            sets: data.sets,
+            setDetail: data.setDetail,
+          };
+          history.push(entry);
+        });
+
+        setAllData(history);
+        setVisibleData(history);
+        setInitialDataLoaded(true);
+      }
+    } catch (error) {
+      console.error("Error fetching history:", error);
+    }
+  };
+  
+
+  useEffect(() => {
+    if (editingExercise) {
+      fetchHistory();
+    }
+  }, [editingExercise]);
   
   const [value, setValue] = useState(editingExercise? editingExercise.sets : '3');
 
@@ -75,7 +109,6 @@ const MasterExerciseDirectoryScreen = () => {
           repRange: data.repRange,
           setDetail: data.setDetail, 
           reference: data.reference,
-          history: data.history,
         };  
         console.log(data.setDetail);
         masterExercises.push(exercise);
@@ -214,6 +247,7 @@ const MasterExerciseDirectoryScreen = () => {
                 </TouchableOpacity>
               </View>
             ))}
+            {editingExercise ? <ExerciseChart history={visibleData}/> : null}
             <Button title={editingExercise ? 'Update' : 'Add'} onPress={editingExercise ? updateExercise : addExercise} />
             <Button title="Delete" onPress={() => handleDeleteExercise()} />
             <Button title="Cancel" onPress={() => {
