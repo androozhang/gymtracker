@@ -1,13 +1,12 @@
 import { View, Text, TextInput, StyleSheet, ActivityIndicator, Button, KeyboardAvoidingView } from 'react-native'
 import React from 'react'
-import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/FirebaseConfig'; 
-import { OAuthProvider, createUserWithEmailAndPassword, signInWithCredential, signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
-import { addDoc, setDoc, collection, doc, DocumentReference, getFirestore } from 'firebase/firestore';
+import firestore from '@react-native-firebase/firestore';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
-import { GoogleAuthProvider } from 'firebase/auth';
+import { useFirebase } from '../services/FirebaseContext';
+
 
 
 GoogleSignin.configure({
@@ -19,19 +18,15 @@ const LoginScreen = () => {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
-  const auth = FIREBASE_AUTH;
-  const db = FIRESTORE_DB;
+  const db = firestore();
   const navigation = useNavigation();
+  const { user } = useFirebase();
   
   const signIn = async() => {
     setLoading(true);
     try {
       // check if email is verified before logging in
-      if (auth.currentUser?.emailVerified === false) {
-        alert('Please verify your email before logging in.');
-        return;
-      }
-      const response = await signInWithEmailAndPassword(auth, email, password);
+      const response = await auth().signInWithEmailAndPassword(email, password);
     } catch (error: any) {
       alert('Sign in failed: ' + error.message);
       console.log(error);
@@ -51,21 +46,18 @@ const LoginScreen = () => {
       // signed in
       const { identityToken } = appleCrendential;
       if (identityToken) {
-        const appleCredential = new OAuthProvider('apple.com');
-        const credential = appleCredential.credential({
-          idToken: identityToken
-        });
-        const response = await signInWithCredential(auth, credential);
+        const appleCredential = auth.AppleAuthProvider.credential(identityToken);
+        const response = await auth().signInWithCredential(appleCredential);
         const user = response.user;
         if (user) {
-          const usersCollection = collection(getFirestore(), 'users');
-          const userDocRef = doc(usersCollection, user.uid);
+          const usersCollection = firestore().collection('users');
+          const userDocRef = firestore().doc('users/' + user.uid);
           const userData = {
             userId: user.uid,
             name: name,
             email: email,
           };
-          await setDoc(userDocRef, userData);
+          await userDocRef.set(userData);
         }
       }
       
@@ -80,15 +72,31 @@ const LoginScreen = () => {
   }
 
   async function onGoogleButtonPress() {
+    // Check if your device supports Google Play
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
     // Get the users ID token
     const { idToken } = await GoogleSignin.signIn();
   
     // Create a Google credential with the token
-    const googleCredential = GoogleAuthProvider.credential(idToken);
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+    // add user to firestore
+    const response = await auth().signInWithCredential(googleCredential);
+    const user = response.user;
+    if (user) {
+      const usersCollection = firestore().collection('users');
+      const userDocRef = firestore().doc('users/' + user.uid);
+      const userData = {
+        userId: user.uid,
+        name: name,
+        email: email,
+      };
+      await userDocRef.set(userData);
+    }
   
     // Sign-in the user with the credential
-    return signInWithCredential(auth, googleCredential);
+    return auth().signInWithCredential(googleCredential);
   }
+
 
   return (
     <View style={style.container}>

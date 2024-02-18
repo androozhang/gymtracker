@@ -1,11 +1,8 @@
-import React from 'react'; 
-import 'react-native-gesture-handler';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useEffect, useState } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
-import { FIREBASE_AUTH } from './src/services/FirebaseConfig';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
@@ -14,23 +11,17 @@ import type { RootStackParamList } from './src/navigations/types';
 import MasterExerciseDirectoryScreen from './src/screens/MasterExerciseDirectoryScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
-import { Provider } from 'react-redux';
-import { store } from './src/store/store';
+import { FirebaseProvider } from './src/services/FirebaseContext'; 
 
-// Create navigators with specified param lists
 const HomeStack = createNativeStackNavigator<RootStackParamList>();
 const ProfileStack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
 
-// Define screen components
 function ProfileStackScreen() {
   return (
     <ProfileStack.Navigator>
-      <ProfileStack.Screen
-        name="Profile"
-        component={ProfileScreen}
-      />
+      <ProfileStack.Screen name="Profile" component={ProfileScreen} />
     </ProfileStack.Navigator>
   );
 }
@@ -38,14 +29,8 @@ function ProfileStackScreen() {
 function HomeStackScreen() {
   return (
     <HomeStack.Navigator>
-      <HomeStack.Screen
-        name="Home"
-        component={HomeScreen}
-      />
-      <HomeStack.Screen
-        name="DayDetail"
-        component={DayDetailScreen}
-      />
+      <HomeStack.Screen name="Home" component={HomeScreen} />
+      <HomeStack.Screen name="DayDetail" component={DayDetailScreen} />
       <HomeStack.Screen
         name="MasterExerciseDirectory"
         component={MasterExerciseDirectoryScreen}
@@ -73,32 +58,45 @@ function AuthStackScreen() {
         options={{ title: 'Reset Password' }}
       />
     </AuthStack.Navigator>
-
   );
 }
 
-// Main App component
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    onAuthStateChanged(FIREBASE_AUTH, (user) => {
-      setUser(user);
+    auth().onAuthStateChanged(userState => {
+      setUser(userState);
+
+      if (loading) {
+        setLoading(false);
+      }
     });
   }, []);
 
+
+
   return (
-    <Provider store={store}>
+    <FirebaseProvider>
       <NavigationContainer>
         {user ? (
-          <Tab.Navigator initialRouteName='Home'>
-            <Tab.Screen name='Home' component={HomeStackScreen} options={{ headerShown: false }} />
-            <Tab.Screen name='Profile' component={ProfileStackScreen} options={{ headerShown: false }} />
+          <Tab.Navigator initialRouteName="Home">
+            <Tab.Screen
+              name="Home"
+              component={HomeStackScreen}
+              options={{ headerShown: false }}
+            />
+            <Tab.Screen
+              name="Profile"
+              component={ProfileStackScreen}
+              options={{ headerShown: false }}
+            />
           </Tab.Navigator>
         ) : (
           <AuthStackScreen />
         )}
       </NavigationContainer>
-    </Provider>
+    </FirebaseProvider>
   );
 }

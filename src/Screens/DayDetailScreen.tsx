@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Text, TextInput, Button, View, FlatList, StyleSheet, TouchableHighlight, ActivityIndicator, TouchableOpacity } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
-import { FIREBASE_AUTH } from '../services/FirebaseConfig';
 import { Exercise, RootStackParamList } from '../navigations/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
@@ -9,6 +8,7 @@ import MasterExercisesList from '../components/MasterExeciseList';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import ExerciseChart from '../components/ExerciseChart';
 import { HistoryEntry, SetDetail } from '../navigations/types';
+import { useFirebase } from '../services/FirebaseContext';
 
 
 // Define types for route and navigation props
@@ -33,40 +33,42 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const [newExerciseTitle, setNewExerciseTitle] = useState(editingExercise ? editingExercise.title : '');
   const [newExerciseSets, setNewExerciseSets] = useState(editingExercise ? editingExercise.sets : 3);
   const [newExerciseRepRange, setNewExerciseRepRange] = useState('8');  
-  const user = FIREBASE_AUTH.currentUser?.uid;
-  const userRef = firestore().collection('users').doc(user);
+  const { user } = useFirebase();
+  const userRef = firestore().collection('users').doc(user?.uid);
   const exercisesRef = userRef.collection('workoutPlans').doc(weekSet).collection("days").doc(day).collection('exercises');
   const masterExercisesRef = userRef.collection('masterExercises');
   const [value, setValue] = useState(editingExercise? editingExercise.sets.toString() : '3');
   const [visibleData, setVisibleData] = useState<HistoryEntry[]>([]);
   const [allData, setAllData] = useState<HistoryEntry[]>([]);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  
 
   const fetchHistory = async () => {
-    try {
-      if (editingExercise) {
-        const querySnapshot = await exercisesRef.doc(editingExercise.id).collection("history").get();
-        const history: HistoryEntry[] = [];
+    if (user) {
+      try {
+        if (editingExercise) {
+          const querySnapshot = await exercisesRef.doc(editingExercise.id).collection("history").get();
+          const history: HistoryEntry[] = [];
+    
+          querySnapshot.forEach(documentSnapshot => {
+            const data = documentSnapshot.data();
+            const entry: HistoryEntry = {
+              date: data.date,
+              sets: data.sets,
+              setDetail: data.setDetail,
+            };
+            history.push(entry);
+          });
   
-        querySnapshot.forEach(documentSnapshot => {
-          const data = documentSnapshot.data();
-          const entry: HistoryEntry = {
-            date: data.date,
-            sets: data.sets,
-            setDetail: data.setDetail,
-          };
-          history.push(entry);
-        });
-
-        setAllData(history);
-        setVisibleData(history);
-        setInitialDataLoaded(true);
+          setAllData(history);
+          setVisibleData(history);
+          setInitialDataLoaded(true);
+        }
+      } catch (error) {
+        console.error("Error fetching history:", error);
       }
-    } catch (error) {
-      console.error("Error fetching history:", error);
     }
   };
-  
 
   useEffect(() => {
     if (editingExercise) {
@@ -107,53 +109,57 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   };
 
   const fetchMasterExercises = async () => {
-    try {
-      const querySnapshot = await masterExercisesRef.get();
-      const masterExercises: Exercise[] = [];
-      querySnapshot.forEach(documentSnapshot => {
-        const data = documentSnapshot.data();
-        const exercise: Exercise = {
-          id: documentSnapshot.id,
-          title: data.title,
-          sets: data.sets,
-          repRange: data.repRange,
-          setDetail: data.setDetail || [{ set: 1, weight: 0, repRange: `10` }],  // Set default value if setDetail is not present
-          reference: data.reference,
-        };
-        // Only add the exercise to the masterExercises array if it is not already in the current day
-        if (data.reference && !data.reference.includes(`${user}/workoutPlans/${weekSet}/days/${day}`)) {
-          masterExercises.push(exercise);
-        }
-      });
-      setMasterExercises(masterExercises);
-    } catch (error) {
-      console.error("Error fetching master exercises:", error);
+    if (user) {
+      try {
+        const querySnapshot = await masterExercisesRef.get();
+        const masterExercises: Exercise[] = [];
+        querySnapshot.forEach(documentSnapshot => {
+          const data = documentSnapshot.data();
+          const exercise: Exercise = {
+            id: documentSnapshot.id,
+            title: data.title,
+            sets: data.sets,
+            repRange: data.repRange,
+            setDetail: data.setDetail || [{ set: 1, weight: 0, repRange: `10` }],  // Set default value if setDetail is not present
+            reference: data.reference,
+          };
+          // Only add the exercise to the masterExercises array if it is not already in the current day
+          if (data.reference && !data.reference.includes(`${user}/workoutPlans/${weekSet}/days/${day}`)) {
+            masterExercises.push(exercise);
+          }
+        });
+        setMasterExercises(masterExercises);
+      } catch (error) {
+        console.error("Error fetching master exercises:", error);
+      }
     }
   };
 
   
   async function refreshExercises() {
-    try {
-      const querySnapshot = await exercisesRef.get();
-      const exercises: Exercise[] = [];
-
-      querySnapshot.forEach(documentSnapshot => {
-        const data = documentSnapshot.data();
-        const exercise: Exercise = {
-          id: documentSnapshot.id,
-          title: data.title,
-          sets: data.sets,
-          repRange: data.repRange,
-          setDetail: data.setDetail || [{ set: 1, weight: 0, repRange: `10` }],  // Set default value if setDetail is not present
-          reference: data.reference,
-        };
-        exercises.push(exercise);
-      });
-
-      setExercises(exercises);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching exercises:", error);
+    if (user) {
+      try {
+        const querySnapshot = await exercisesRef.get();
+        const exercises: Exercise[] = [];
+  
+        querySnapshot.forEach(documentSnapshot => {
+          const data = documentSnapshot.data();
+          const exercise: Exercise = {
+            id: documentSnapshot.id,
+            title: data.title,
+            sets: data.sets,
+            repRange: data.repRange,
+            setDetail: data.setDetail || [{ set: 1, weight: 0, repRange: `10` }],  // Set default value if setDetail is not present
+            reference: data.reference,
+          };
+          exercises.push(exercise);
+        });
+  
+        setExercises(exercises);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching exercises:", error);
+      }
     }
   }
 
@@ -174,63 +180,68 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   
 
   const addExercise = async () => {
-    const currentDate = new Date().toISOString().split('T')[0];
-    try {
-      const exerciseRef = await exercisesRef.add({
-        title: newExerciseTitle,
-        sets: value,
-        repRange: newExerciseRepRange,
-        setDetail: setDetail,  // Add the setDetail to the exercise
-        reference: [`${user}/workoutPlans/${weekSet}/days/${day}`],
-      });
-  
-      // Get the ID of the added exercise
-      const exerciseId = exerciseRef.id;
-  
-      // Add exercise to masterExercisesRef with the same ID
-      await masterExercisesRef.doc(exerciseId).set({
-        title: newExerciseTitle,
-        sets: value,
-        repRange: newExerciseRepRange,
-        setDetail: setDetail,  // Add the setDetail to the exercise
-        reference: [`${user}/workoutPlans/${weekSet}/days/${day}`],
-      });
+    if (user) {
+      const currentDate = new Date().toISOString().split('T')[0];
+      try {
+        const exerciseRef = await exercisesRef.add({
+          title: newExerciseTitle,
+          sets: value,
+          repRange: newExerciseRepRange,
+          setDetail: setDetail,  // Add the setDetail to the exercise
+          reference: [`${user.uid}/workoutPlans/${weekSet}/days/${day}`],
+        });
+    
+        // Get the ID of the added exercise
+        const exerciseId = exerciseRef.id;
+    
+        // Add exercise to masterExercisesRef with the same ID
+        await masterExercisesRef.doc(exerciseId).set({
+          title: newExerciseTitle,
+          sets: value,
+          repRange: newExerciseRepRange,
+          setDetail: setDetail,  // Add the setDetail to the exercise
+          reference: [`${user.uid}/workoutPlans/${weekSet}/days/${day}`],
+        });
 
-      await masterExercisesRef.doc(exerciseId).collection('history').doc(currentDate).set({
-        date: currentDate,
-        sets: newExerciseSets,
-        setDetail: setDetail,
-      });
-  
-      // Add the exercise to the day's subcollection under the "exercises" collection
-      const dayRef = userRef.collection('workoutPlans').doc(weekSet).collection("days").doc(day);
-      const exerciseHistoryRef = dayRef.collection('exercises').doc(exerciseId);
-  
-      // Add the exercise to the day's subcollection
-      await exerciseHistoryRef.set({
-        title: newExerciseTitle,
-        sets: value,
-        repRange: newExerciseRepRange,
-        setDetail: setDetail,
-        reference: [`${user}/workoutPlans/${weekSet}/days/${day}`],
-      });
-  
-      // Add history entry to the "history" subcollection
-      await exerciseHistoryRef.collection('history').doc(currentDate).set({
-        date: currentDate,
-        sets: newExerciseSets,
-        setDetail: setDetail,
-      });
-  
-      setNewExerciseTitle('');
-      setNewExerciseSets(3);
-      setNewExerciseRepRange('8-12');
-      setSetDetail([{ set: 1, weight: 0, repRange: `10` }]);  // Reset setDetail
-  
-      refreshExercises();
-      setShowAddExerciseModal(false);
-    } catch (error) {
-      console.error("Error adding exercise:", error);
+        await masterExercisesRef.doc(exerciseId).collection('history').doc(currentDate).set({
+          date: currentDate,
+          sets: newExerciseSets,
+          setDetail: setDetail,
+        });
+    
+        // Add the exercise to the day's subcollection under the "exercises" collection
+        const dayRef = userRef.collection('workoutPlans').doc(weekSet).collection("days").doc(day);
+        const exerciseHistoryRef = dayRef.collection('exercises').doc(exerciseId);
+    
+        // Add the exercise to the day's subcollection
+        await exerciseHistoryRef.set({
+          title: newExerciseTitle,
+          sets: value,
+          repRange: newExerciseRepRange,
+          setDetail: setDetail,
+          reference: [`${user.uid}/workoutPlans/${weekSet}/days/${day}`],
+        });
+    
+        // Add history entry to the "history" subcollection
+        await exerciseHistoryRef.collection('history').doc(currentDate).set({
+          date: currentDate,
+          sets: newExerciseSets,
+          setDetail: setDetail,
+        });
+    
+        setNewExerciseTitle('');
+        setNewExerciseSets(3);
+        setNewExerciseRepRange('8-12');
+        setSetDetail([{ set: 1, weight: 0, repRange: `10` }]);  // Reset setDetail
+    
+        refreshExercises();
+        setShowAddExerciseModal(false);
+      } catch (error) {
+        console.error("Error adding exercise:", error);
+      }
+    }
+    else {
+      console.error("User not logged in");
     }
   };
 
@@ -244,94 +255,100 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   };
 
   const updateExercise = async () => {
-    try {
-      const currentDate = new Date().toISOString().split('T')[0];
-      if (editingExercise && editingExercise.reference) {
-        await Promise.all(
-          editingExercise.reference.map(async (reference) => {
-            const exerciseDocRef = firestore()
-              .collection('users')
-              .doc(reference)
-              .collection('exercises')
-              .doc(editingExercise.id);
-             
-            const historyEntryRef = exerciseDocRef.collection('history').doc(currentDate);
-            // Check if there's an entry for the current day
-            const existingEntrySnapshot = await historyEntryRef.get();
+    if (user) {
+      try {
+        const currentDate = new Date().toISOString().split('T')[0];
+        if (editingExercise && editingExercise.reference) {
+          await Promise.all(
+            editingExercise.reference.map(async (reference) => {
+              const exerciseDocRef = firestore()
+                .collection('users')
+                .doc(reference)
+                .collection('exercises')
+                .doc(editingExercise.id);
+               
+              const historyEntryRef = exerciseDocRef.collection('history').doc(currentDate);
+              // Check if there's an entry for the current day
+              const existingEntrySnapshot = await historyEntryRef.get();
+    
+              if (existingEntrySnapshot.exists) {
+                // Update the existing entry for the current day
+                await historyEntryRef.update({
+                  date: currentDate,
+                  sets: newExerciseSets,
+                  setDetail: setDetail,
+                });
   
-            if (existingEntrySnapshot.exists) {
-              // Update the existing entry for the current day
-              await historyEntryRef.update({
-                date: currentDate,
-                sets: newExerciseSets,
-                setDetail: setDetail,
-              });
-
-              await exerciseDocRef.update({
-                title: newExerciseTitle,
-                sets: newExerciseSets,
-                setDetail: setDetail,
-              });
-
-            } else {
-              // Add a new entry for the current day
-              await exerciseDocRef.update({
-                title: newExerciseTitle,
-                sets: newExerciseSets,
-                setDetail: setDetail,
-              });
+                await exerciseDocRef.update({
+                  title: newExerciseTitle,
+                  sets: newExerciseSets,
+                  setDetail: setDetail,
+                });
   
-              await historyEntryRef.set({
-                date: currentDate,
-                sets: newExerciseSets,
-                setDetail: setDetail,
-              });
-            }
-          })
-        );
+              } else {
+                // Add a new entry for the current day
+                await exerciseDocRef.update({
+                  title: newExerciseTitle,
+                  sets: newExerciseSets,
+                  setDetail: setDetail,
+                });
+    
+                await historyEntryRef.set({
+                  date: currentDate,
+                  sets: newExerciseSets,
+                  setDetail: setDetail,
+                });
+              }
+            })
+          );
+    
+          // Update the master exercise
+          const masterExerciseRef = masterExercisesRef.doc(editingExercise.id);
+          const masterHistoryEntryRef = masterExerciseRef.collection('history').doc(currentDate);
+    
+          // Check if there's an entry for the current day in the master exercise
+          const existingMasterEntrySnapshot = await masterHistoryEntryRef.get();
+          if (existingMasterEntrySnapshot.exists) {
+            // Update the existing entry for the master exercise
+            await masterHistoryEntryRef.update({
+              date: currentDate,
+              sets: newExerciseSets,
+              setDetail: setDetail,
+            });
   
-        // Update the master exercise
-        const masterExerciseRef = masterExercisesRef.doc(editingExercise.id);
-        const masterHistoryEntryRef = masterExerciseRef.collection('history').doc(currentDate);
+            await masterExerciseRef.update({
+              title: newExerciseTitle,
+              sets: value,
+              setDetail: setDetail,
+            });
+            console.log(masterExerciseRef.path)
   
-        // Check if there's an entry for the current day in the master exercise
-        const existingMasterEntrySnapshot = await masterHistoryEntryRef.get();
-        if (existingMasterEntrySnapshot.exists) {
-          // Update the existing entry for the master exercise
-          await masterHistoryEntryRef.update({
-            date: currentDate,
-            sets: newExerciseSets,
-            setDetail: setDetail,
-          });
-
-          await masterExerciseRef.update({
-            title: newExerciseTitle,
-            sets: value,
-            setDetail: setDetail,
-          });
-          console.log(masterExerciseRef.path)
-
-        } else {
-          // Add a new entry for the current day for the master exercise
-          await masterExerciseRef.update({
-            title: newExerciseTitle,
-            sets: value,
-            setDetail: setDetail,
-          });
-  
-          await masterHistoryEntryRef.set({
-            date: currentDate,
-            sets: newExerciseSets,
-            setDetail: setDetail,
-          });
+          } else {
+            // Add a new entry for the current day for the master exercise
+            await masterExerciseRef.update({
+              title: newExerciseTitle,
+              sets: value,
+              setDetail: setDetail,
+            });
+    
+            await masterHistoryEntryRef.set({
+              date: currentDate,
+              sets: newExerciseSets,
+              setDetail: setDetail,
+            });
+          }
+    
+          refreshExercises();
+          setShowAddExerciseModal(false);
+          setEditingExercise(null);
         }
-  
-        refreshExercises();
-        setShowAddExerciseModal(false);
-        setEditingExercise(null);
+      } catch (error) {
+        console.error("Error updating exercise:", error);
       }
-    } catch (error) {
-      console.error("Error updating exercise:", error);
+    }
+    else
+    {
+      console.error("User not logged in");
     }
   };
   
@@ -340,14 +357,14 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
 
   const deleteExercise = async () => {
     try {
-      if (editingExercise) {
+      if (editingExercise && user) {
         const masterExerciseRef = masterExercisesRef.doc(editingExercise.id);
         const masterExerciseDoc = await masterExerciseRef.get();
         const masterExerciseData = masterExerciseDoc.data();
         const masterExerciseReference: String[] = masterExerciseData?.reference || [];
   
         // Remove the current day's reference from the master exercise
-        const updatedMasterExerciseReference = masterExerciseReference.filter(ref => ref !== `${user}/workoutPlans/${weekSet}/days/${day}`);
+        const updatedMasterExerciseReference = masterExerciseReference.filter(ref => ref !== `${user.uid}/workoutPlans/${weekSet}/days/${day}`);
         
         // Update the master exercise with the new reference
         await masterExerciseRef.update({
@@ -368,31 +385,32 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
 
   
   const addMasterExerciseToCurrentDay = async (masterExercise: Exercise) => {
-    console.log("here")
-    try { 
-      const existingReference = masterExercise.reference || [];
-      await exercisesRef.doc(masterExercise.id).set({
-        title: masterExercise.title,
-        sets: masterExercise.sets,
-        repRange: masterExercise.repRange,
-        setDetail: masterExercise.setDetail, 
-        reference: [...existingReference, `${user}/workoutPlans/${weekSet}/days/${day}`],
-      });
-
-      await masterExercisesRef.doc(masterExercise.id).set({
-        title: newExerciseTitle,
-        sets: value,
-        repRange: newExerciseRepRange,
-        setDetail: setDetail,  
-        reference: [...existingReference, `${user}/workoutPlans/${weekSet}/days/${day}`],
-      });
-
-      closeMasterExercisesList();
-      refreshExercises();
+    if (user) {
+      try { 
+        const existingReference = masterExercise.reference || [];
+        await exercisesRef.doc(masterExercise.id).set({
+          title: masterExercise.title,
+          sets: masterExercise.sets,
+          repRange: masterExercise.repRange,
+          setDetail: masterExercise.setDetail, 
+          reference: [...existingReference, `${user.uid}/workoutPlans/${weekSet}/days/${day}`],
+        });
   
-      setShowMasterExercisesModal(false);
-    } catch (error) {
-      console.error("Error adding master exercise to current day:", error);
+        await masterExercisesRef.doc(masterExercise.id).set({
+          title: newExerciseTitle,
+          sets: value,
+          repRange: newExerciseRepRange,
+          setDetail: setDetail,  
+          reference: [...existingReference, `${user.uid}/workoutPlans/${weekSet}/days/${day}`],
+        });
+  
+        closeMasterExercisesList();
+        refreshExercises();
+    
+        setShowMasterExercisesModal(false);
+      } catch (error) {
+        console.error("Error adding master exercise to current day:", error);
+      }
     }
   };
   

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, FlatList, Button, TouchableOpacity } from 'react-native';
 import { NavigationProp, RouteProp, useNavigation } from '@react-navigation/native';
-import { FIREBASE_AUTH } from '../services/FirebaseConfig';
 import Day from '../components/Day';
 import { HomeStackNavigationProp } from '../navigations/types';
 import DropDownPicker from 'react-native-dropdown-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import firestore from '@react-native-firebase/firestore';
 
 interface RouterProps {
   navigation: HomeStackNavigationProp;
@@ -20,6 +20,7 @@ const HomeScreen = ({ navigation }: RouterProps) => {
     { label: 'Second Set', value: 'secondSet' },
     { label: 'Third Set', value: 'thirdSet' },
   ]);
+
 
   const renderDayCard = (day: string) => (
     <TouchableOpacity style={styles.dayCard} onPress={() => navigation.navigate('DayDetail', { day, weekSet: value })}>

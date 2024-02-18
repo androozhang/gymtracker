@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ActivityIndicator, Button, KeyboardAvoidingView } from 'react-native';
-import { User, createUserWithEmailAndPassword, getAuth, sendEmailVerification, signOut } from 'firebase/auth';
-import { collection, doc, setDoc, getFirestore } from 'firebase/firestore';
-import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/FirebaseConfig';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 
 const RegisterScreen = () => {
@@ -10,34 +9,24 @@ const RegisterScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const auth = FIREBASE_AUTH;
-  const db = FIRESTORE_DB;
+  const db = firestore();
   const navigation = useNavigation();
 
   const signUp = async () => {
     setLoading(true);
     try {
-      const auth = getAuth();
-      const response = await createUserWithEmailAndPassword(auth, email, password);
-      const user: User | null = response.user;
+      const response = await auth().createUserWithEmailAndPassword(email, password);
+      const user: FirebaseAuthTypes.User | null = response.user;
   
       if (user) {
-        // Send email verification
-        await sendEmailVerification(user);
   
-        // Sign out the user to prevent automatic sign-in
-        await signOut(auth);
-  
-        const usersCollection = collection(getFirestore(), 'users');
-        const userDocRef = doc(usersCollection, user.uid);
-  
-        const userData = {
-          userId: user.uid,
+        // Create user document
+        const userDoc = db.collection('users').doc(user.uid);
+        await userDoc.set({
           name: name,
           email: email,
-        };
-  
-        await setDoc(userDocRef, userData);
+          createdAt: firestore.FieldValue.serverTimestamp(),
+        });
         alert("Check your emails for verification!");
       } else {
         console.error('User is null.');

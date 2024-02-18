@@ -1,15 +1,15 @@
 import { View, Text, FlatList, TouchableHighlight, Button, TextInput, Modal, StyleSheet, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import firestore from '@react-native-firebase/firestore';
-import { FIREBASE_AUTH } from '../services/FirebaseConfig';
 import { Exercise, HistoryEntry } from '../navigations/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import ExerciseChart from '../components/ExerciseChart';
+import { useFirebase } from '../services/FirebaseContext';
 
 const MasterExerciseDirectoryScreen = () => {
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
-  const user = FIREBASE_AUTH.currentUser?.uid;
-  const userRef = firestore().collection('users').doc(FIREBASE_AUTH.currentUser?.uid);
+  const { user } = useFirebase();
+  const userRef = firestore().collection('users').doc(user?.uid);
   const masterExerciseDirectoryRef = userRef.collection('masterExercises'); 
   const [masterExerciseDirectory, setMasterExerciseDirectory] = useState<Exercise[]>([]);
   const [showAddExerciseModal, setShowAddExerciseModal] = useState(false);
@@ -144,7 +144,7 @@ const MasterExerciseDirectoryScreen = () => {
 
   const updateExercise = async () => {
     try {
-      if (editingExercise) {
+      if (editingExercise && user) {
         await Promise.all(
           editingExercise.reference.map(async (reference) => {
             await firestore()
