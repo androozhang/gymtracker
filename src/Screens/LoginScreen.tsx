@@ -2,10 +2,12 @@ import { View, Text, TextInput, StyleSheet, ActivityIndicator, Button, KeyboardA
 import React from 'react'
 import { useNavigation } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
-import * as AppleAuthentication from 'expo-apple-authentication';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
 import { useFirebase } from '../services/FirebaseContext';
+import { AppleButton } from '@invertase/react-native-apple-authentication';
+import { appleAuth } from '@invertase/react-native-apple-authentication';
+import { useEffect } from 'react';
 
 
 
@@ -35,41 +37,49 @@ const LoginScreen = () => {
     }
   }
 
-  const signInWithApple = async() => {
-    try {
-      const appleCrendential = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
-      });
-      // signed in
-      const { identityToken } = appleCrendential;
-      if (identityToken) {
-        const appleCredential = auth.AppleAuthProvider.credential(identityToken);
-        const response = await auth().signInWithCredential(appleCredential);
-        const user = response.user;
-        if (user) {
-          const usersCollection = firestore().collection('users');
-          const userDocRef = firestore().doc('users/' + user.uid);
-          const userData = {
-            userId: user.uid,
-            name: name,
-            email: email,
-          };
-          await userDocRef.set(userData);
-        }
-      }
-      
-    } catch (e: any) {
-      if (e.code === 'ERR_REQUEST_CANCELED') {
-        // handle that the user canceled the sign-in flow
-        console.log('User cancelled Apple sign in');
-      } else {
-        console.log('Apple sign in error: ', e);
-      }
+  
+  async function onAppleButtonPress() {
+    // Start the sign-in request
+    const appleAuthRequestResponse = await appleAuth.performRequest({
+      requestedOperation: appleAuth.Operation.LOGIN,
+      // As per the FAQ of react-native-apple-authentication, the name should come first in the following array.
+      // See: https://github.com/invertase/react-native-apple-authentication#faqs
+      requestedScopes: [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
+    });
+  
+    // Ensure Apple returned a user identityToken
+    if (!appleAuthRequestResponse.identityToken) {
+      throw new Error('Apple Sign-In failed - no identify token returned');
     }
+  
+    // Create a Firebase credential from the response
+    const { identityToken, nonce } = appleAuthRequestResponse;
+    const appleCredential = auth.AppleAuthProvider.credential(identityToken, nonce);
+
+    // add user to firestore
+    const response = await auth().signInWithCredential(appleCredential);
+    const user = response.user;
+    if (user) {
+      const usersCollection = firestore().collection('users');
+      const userDocRef = firestore().doc('users/' + user.uid);
+      const userData = {
+        userId: user.uid,
+        name: name,
+        email: email,
+      };
+      await userDocRef.set(userData);
+    }
+  
+    // Sign the user in with the credential
+    return auth().signInWithCredential(appleCredential);
   }
+  
+  useEffect(() => {
+    // onCredentialRevoked returns a function that will remove the event listener. useEffect will call this function when the component unmounts
+    return appleAuth.onCredentialRevoked(async () => {
+      console.warn('If this function executes, User Credentials have been Revoked');
+    });
+  }, []);
 
   async function onGoogleButtonPress() {
     // Check if your device supports Google Play
@@ -107,12 +117,14 @@ const LoginScreen = () => {
     ) : ( 
         <> 
           <Button title="Login" onPress={signIn} />
-          <AppleAuthentication.AppleAuthenticationButton
-            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-            cornerRadius={5}
-            style={{ width: 200, height: 44 }}
-            onPress={signInWithApple}
+          <AppleButton
+            buttonStyle={AppleButton.Style.WHITE}
+            buttonType={AppleButton.Type.SIGN_IN}
+            style={{
+              width: 160, // You must specify a width
+              height: 45, // You must specify a height
+            }}
+            onPress={() => onAppleButtonPress()}
           />
           <Button
             title="Google Sign-In"
