@@ -12,6 +12,7 @@ import MasterExerciseDirectoryScreen from './src/screens/MasterExerciseDirectory
 import RegisterScreen from './src/screens/RegisterScreen';
 import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
 import { FirebaseProvider } from './src/services/FirebaseContext'; 
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const HomeStack = createNativeStackNavigator<RootStackParamList>();
 const ProfileStack = createNativeStackNavigator<RootStackParamList>();
@@ -21,7 +22,7 @@ const Tab = createBottomTabNavigator();
 function ProfileStackScreen() {
   return (
     <ProfileStack.Navigator>
-      <ProfileStack.Screen name="Profile" component={ProfileScreen} />
+      <ProfileStack.Screen name="Profile" component={ProfileScreen} options={{headerShown: false}}/>
     </ProfileStack.Navigator>
   );
 }
@@ -29,11 +30,12 @@ function ProfileStackScreen() {
 function HomeStackScreen() {
   return (
     <HomeStack.Navigator>
-      <HomeStack.Screen name="Home" component={HomeScreen} />
-      <HomeStack.Screen name="DayDetail" component={DayDetailScreen} />
+      <HomeStack.Screen name="Home" component={HomeScreen} options={{headerShown: false}}/>
+      <HomeStack.Screen name="DayDetail" component={DayDetailScreen} options={{headerShown: false}}/>
       <HomeStack.Screen
         name="MasterExerciseDirectory"
         component={MasterExerciseDirectoryScreen}
+        options={{headerShown: false}}
       />
     </HomeStack.Navigator>
   );
@@ -50,12 +52,12 @@ function AuthStackScreen() {
       <AuthStack.Screen
         name="Register"
         component={RegisterScreen}
-        options={{ title: 'Create Account' }}
+        options={{ headerShown: false }}
       />
       <AuthStack.Screen
         name="ResetPassword"
         component={ResetPasswordScreen}
-        options={{ title: 'Reset Password' }}
+        options={{ headerShown: false }}
       />
     </AuthStack.Navigator>
   );
@@ -85,12 +87,17 @@ export default function App() {
             <Tab.Screen
               name="Home"
               component={HomeStackScreen}
-              options={{ headerShown: false }}
+              options={{
+                headerShown: false,
+                tabBarIcon: () => <Ionicons name="home" size={24} color="black" />,
+              }}
             />
             <Tab.Screen
               name="Profile"
               component={ProfileStackScreen}
-              options={{ headerShown: false }}
+              options={{ headerShown: false,
+                tabBarIcon: () => <Ionicons name="person" size={24} color="black" />,
+               }}
             />
           </Tab.Navigator>
         ) : (

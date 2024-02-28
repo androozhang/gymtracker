@@ -30,6 +30,13 @@ const HomeScreen = ({ navigation }: RouterProps) => {
 
   return (
     <View style={styles.container}>
+      <View style={{flex: 1, flexDirection: 'row'}}>
+      <TouchableOpacity
+        style={{  alignSelf: 'flex-start', marginTop: 15, marginLeft: '5%', width: '22%'}}
+        onPress={() => navigation.navigate('MasterExerciseDirectory')}
+      >
+        <Ionicons name="list-outline" size={40} color="black" />
+      </TouchableOpacity>
       <DropDownPicker
         open={open}
         value={value}
@@ -43,13 +50,14 @@ const HomeScreen = ({ navigation }: RouterProps) => {
         dropDownContainerStyle={styles.dropdownListContainer}
         TickIconComponent={({style})=><Ionicons name="add" size={24} color="white" />}  
       />
-
+      </View>
       <FlatList
         data={days}
         renderItem={({ item }) => renderDayCard(item)}
         keyExtractor={(item) => item}
+        style={{ width: '100%', bottom: '5%'}}
       />
-      <Button title="Exercise Directory" onPress={() => navigation.navigate('MasterExerciseDirectory')} />
+      
     </View>
   );
 };
@@ -59,6 +67,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#fff',
+    top: 50,
   },
   header: {
     fontSize: 18,

@@ -1,8 +1,8 @@
-import { View, Text, TextInput, StyleSheet, ActivityIndicator, Button, KeyboardAvoidingView } from 'react-native'
+import { View, Text, TextInput, StyleSheet, ActivityIndicator, Button, KeyboardAvoidingView, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useNavigation } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin, GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
 import { useFirebase } from '../services/FirebaseContext';
 import { AppleButton } from '@invertase/react-native-apple-authentication';
@@ -109,50 +109,99 @@ const LoginScreen = () => {
 
 
   return (
-    <View style={style.container}>
+    <View style={styles.container}>
       <KeyboardAvoidingView behavior='padding'>
-        <TextInput value={email} style={style.input} placeholder='Email' autoCapitalize='none' onChangeText={(text) => setEmail(text)}></TextInput>
-        <TextInput secureTextEntry={true} value={password} style={style.input} placeholder='Password' autoCapitalize='none' onChangeText={(text) => setPassword(text)}></TextInput>
-    { loading ? (<ActivityIndicator size="large" color="#0000ff" /> 
-    ) : ( 
-        <> 
-          <Button title="Login" onPress={signIn} />
-          <AppleButton
-            buttonStyle={AppleButton.Style.WHITE}
-            buttonType={AppleButton.Type.SIGN_IN}
-            style={{
-              width: 160, // You must specify a width
-              height: 45, // You must specify a height
-            }}
-            onPress={() => onAppleButtonPress()}
-          />
-          <Button
-            title="Google Sign-In"
-            onPress={() => onGoogleButtonPress().then(() => console.log('Signed in with Google!'))}
-          />
-          <Button title="Create Account" onPress={() => navigation.navigate("Register")} />
-          <Button title="Forgot Password" onPress={() => navigation.navigate("ResetPassword")} />
-        </>
-    )}
-        </KeyboardAvoidingView>
+        <TextInput value={email} style={styles.input} placeholder='Email' autoCapitalize='none' onChangeText={(text) => setEmail(text)} />
+        <TextInput secureTextEntry={true} value={password} style={styles.input} placeholder='Password' autoCapitalize='none' onChangeText={(text) => setPassword(text)} />
+
+        {loading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <>
+            <TouchableOpacity style={styles.loginButton} onPress={signIn}>
+              <Text style={styles.loginButtonText}>Login</Text>
+            </TouchableOpacity>
+            <Button title="Create Account" onPress={() => navigation.navigate('Register')} />
+            <Button title="Forgot Password" onPress={() => navigation.navigate('ResetPassword')} />
+
+            <View style={{
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginTop: 100,
+            }}>
+              <Text>Or Continue With</Text>
+              <View style={styles.buttonContainer}>
+                <AppleButton
+                  buttonStyle={AppleButton.Style.WHITE}
+                  buttonType={AppleButton.Type.SIGN_IN}
+                  style={styles.appleButton}
+                  onPress={() => onAppleButtonPress()}
+                />
+                <GoogleSigninButton
+                  size={GoogleSigninButton.Size.Icon}
+                  color={GoogleSigninButton.Color.Dark}
+                  onPress={() => onGoogleButtonPress()}
+                  disabled={loading}
+                />
+              </View>
+            </View>
+
+          </>
+        )}
+      </KeyboardAvoidingView>
     </View>
-  )
-}
+  );
+};
 
-export default LoginScreen
-
-const style = StyleSheet.create({
-    container: {
-        marginHorizontal: 20,
-        flex: 1,
-        justifyContent: 'center'
-    },
-    input: {
-        marginVertical: 4, 
-        height: 50, 
-        borderWidth: 1, 
-        borderRadius: 4, 
-        padding: 10, 
-        backgroundColor: '#fff'
-    }
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 20,
+    flex: 1,
+    justifyContent: 'center',
+    marginTop: 100,
+  },
+  input: {
+    marginVertical: 4,
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 10,
+    backgroundColor: '#fff',
+  },
+  loginButton: {
+    marginTop: 10,
+    backgroundColor: '#007bff',
+    paddingVertical: 15,
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+  loginButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  appleButton: {
+    width: 45,
+    height: 45,
+    marginHorizontal: 10,
+  },
+  googleButton: {
+    backgroundColor: '#dd4b39',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 4,
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
+  googleButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
 });
+
+export default LoginScreen;

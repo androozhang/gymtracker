@@ -12,8 +12,9 @@ const ProfileScreen = ({ navigation }: RouterProps) => {
   
 
   return (
-    <View>
+    <View style={{top: 100}}>
       <Button title="Logout" onPress={() => auth().signOut()} />
+      <Button title="Delete Account" onPress={() => auth().currentUser?.delete()} />
     </View>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Text, TextInput, Button, View, FlatList, StyleSheet, TouchableHighlight, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Modal, Text, TextInput, Button, View, FlatList, StyleSheet, TouchableHighlight, ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import { Exercise, RootStackParamList } from '../navigations/types';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -420,6 +420,10 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   }
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
     <View style={styles.container}>
       <Text style={styles.heading}>{`Details for ${day}`}</Text>
 
@@ -457,13 +461,15 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         }}
         presentationStyle='pageSheet'
       >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <View style={{ width: 300, padding: 20, backgroundColor: 'white' }}>
-            <Text>{editingExercise ? 'Edit Exercise' : 'Add Exercise'}</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', flexDirection: 'row'}}>
+          <View style={{ width: '100%', bottom: '50%', padding: 20, backgroundColor: 'white' }}>
+            <Text style={styles.heading}>{editingExercise ? 'Edit Exercise' : 'Add Exercise'}</Text>
+           
             <TextInput
               placeholder="Title"
               value={newExerciseTitle}
               onChangeText={text => setNewExerciseTitle(text)}
+              style={{ borderColor: 'gray', padding: 8, marginBottom: 10, fontSize: 16 }}
             />
             
             {setDetail.map((setDetail, index) => (
@@ -490,19 +496,30 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
                 </TouchableOpacity>
               </View>
             ))}
+            
             {editingExercise ? <ExerciseChart history={visibleData}/> : null}
-            <Button title="Add Set" onPress={addSet} />
+            <View style={{top: '50%'}}>
+            <TouchableOpacity style={[styles.button]} onPress={addSet}>
+            <Text style={styles.buttonText}>Add Set</Text>
+            </TouchableOpacity>
 
+              <TouchableOpacity style={styles.button} onPress={editingExercise ? updateExercise : addExercise}>
+                <Text style={styles.buttonText}>{editingExercise ? 'Update' : 'Add'}</Text>
+              </TouchableOpacity>
 
-            <Button title={editingExercise ? 'Update' : 'Add'} onPress={editingExercise ? updateExercise : addExercise} />
-            {editingExercise && (
-              <Button title="Delete" onPress={deleteExercise} color="red" />
-            )}
-            <Button title="Cancel" onPress={() => {
-              setShowAddExerciseModal(false);
-              setEditingExercise(null);
-              setNewExerciseTitle('');
-            }} />
+              {editingExercise && (
+                <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={deleteExercise}>
+                  <Text style={[styles.buttonText, { color: 'red' }]}>Delete</Text>
+                </TouchableOpacity>
+              )}
+            <TouchableOpacity onPress={() => {
+               setShowAddExerciseModal(false);
+               setEditingExercise(null);
+               setNewExerciseTitle('');
+            }} style={[styles.cancelButton, styles.modalButton]}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -519,29 +536,41 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         }}
         presentationStyle='pageSheet'
       >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Button title="Add Exercise" onPress={() => {
-          setEditingExercise(null);
-          setShowAddExerciseModal(true);
-          setNewExerciseTitle('');
-          setNewExerciseSets(3);
-          setNewExerciseRepRange('8-12');
-          setSetDetail([{ set: 1, weight: 0, repRange: `10` }]);
-          setShowAddOptionModal(false);
-        }} />
-        <Button title="Add Exercise from Master Exercise Directory" onPress={() => {
-          openMasterExercisesList();
-          setShowAddOptionModal(false);
-        }} />
-        <Button title="Cancel" onPress={() => {
-          setShowAddOptionModal(false);
-        }} />
+        <View style={styles.modalContainer}>
+          <TouchableOpacity
+            style={styles.modalButton}
+            onPress={() => {
+              setEditingExercise(null);
+              setShowAddExerciseModal(true);
+              setNewExerciseTitle('');
+              setNewExerciseSets(3);
+              setNewExerciseRepRange('8-12');
+              setSetDetail([{ set: 1, weight: 0, repRange: `10` }]);
+              setShowAddOptionModal(false);
+            }}
+          >
+            <Text style={styles.buttonText}>Add Exercise</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.modalButton}
+            onPress={() => {
+              openMasterExercisesList();
+              setShowAddOptionModal(false);
+            }}
+          >
+            <Text style={styles.buttonText}>Add from Master List</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.cancelButton, styles.modalButton]}
+            onPress={() => {
+              setShowAddOptionModal(false);
+            }}
+          >
+            <Text style={styles.buttonText}>Cancel</Text>
+          </TouchableOpacity>
         </View>
-
-
-
-
-
       </Modal>
       {showMasterExercisesList && (
         <Modal
@@ -558,6 +587,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
       </Modal>
       )}
     </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -568,20 +598,23 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#f0f0f0',
+    top: 50,
   },
   heading: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
+    width: '100%',
+    textAlign: 'center',
   },
   plusButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#000000',
     borderRadius: 50,
     width: 50,
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 50,
   },
   exerciseItem: {
     backgroundColor: 'white',
@@ -594,11 +627,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   modalContent: {
     width: 300,
     padding: 20,
@@ -610,6 +638,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
+    maxHeight: '50%',
   },
   setDetailText: {
     marginRight: 10,
@@ -631,6 +660,40 @@ const styles = StyleSheet.create({
   },
   addBox: {
     alignItems: 'center',
-  }
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalButton: {
+    padding: 15,
+    marginBottom: 15,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+    color: 'black',
+    backgroundColor: '#3498db'
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  cancelButton: {
+    backgroundColor: '#e74c3c', // Red color for cancel button
+  },
+  button: {
+    backgroundColor: '#3498db',
+    padding: 15,
+    marginBottom: 15,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+  },
+  deleteButton: {
+    backgroundColor: '#e74c3c', // Red color for delete button
+  },
   // ... (Add more styles as needed)
 });
