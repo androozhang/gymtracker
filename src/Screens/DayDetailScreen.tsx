@@ -461,8 +461,8 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         }}
         presentationStyle='pageSheet'
       >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', flexDirection: 'row'}}>
-          <View style={{ width: '100%', bottom: '50%', padding: 20, backgroundColor: 'white' }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', paddingTop: 20,}}>
+          <View style={{ width: '100%', height: '100%', padding: 20, backgroundColor: 'white' }}>
             <Text style={styles.heading}>{editingExercise ? 'Edit Exercise' : 'Add Exercise'}</Text>
            
             <TextInput
@@ -471,34 +471,36 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
               onChangeText={text => setNewExerciseTitle(text)}
               style={{ borderColor: 'gray', padding: 8, marginBottom: 10, fontSize: 16 }}
             />
-            
-            {setDetail.map((setDetail, index) => (
-              <View key={`setDetail-${index}`} style={styles.setDetailContainer}>
-                <Text style={styles.setDetailText}>
-                  Set {setDetail.set}
-                </Text>
-                <TextInput
-                  style={styles.setInput}
-                  placeholder={`Weight`}
-                  value={setDetail.weight.toString()}
-                  onChangeText={(text) => updateWeight(index, text)}
-                />
-                 <Text style={styles.label}>lbs</Text>
-                <TextInput
-                  style={styles.setInput}
-                  placeholder={`Reps`}
-                  value={setDetail.repRange}
-                  onChangeText={(text) => updateRepRange(index, text)}
-                />
-                <Text style={styles.label}>reps</Text>
-                <TouchableOpacity onPress={() => handleDeleteSet(index)}>
-                  <Ionicons name="trash-bin" size={24} color="red" />
-                </TouchableOpacity>
-              </View>
-            ))}
-            
+            <ScrollView style={{}}>
+            <View>    
+              {setDetail.map((setDetail, index) => (
+                <View key={`setDetail-${index}`} style={styles.setDetailContainer}>
+                  <Text style={styles.setDetailText}>
+                    Set {setDetail.set}
+                  </Text>
+                  <TextInput
+                    style={styles.setInput}
+                    placeholder={`Weight`}
+                    value={setDetail.weight.toString()}
+                    onChangeText={(text) => updateWeight(index, text)}
+                  />
+                  <Text style={styles.label}>lbs</Text>
+                  <TextInput
+                    style={styles.setInput}
+                    placeholder={`Reps`}
+                    value={setDetail.repRange}
+                    onChangeText={(text) => updateRepRange(index, text)}
+                  />
+                  <Text style={styles.label}>reps</Text>
+                  <TouchableOpacity onPress={() => handleDeleteSet(index)}>
+                    <Ionicons name="trash-bin" size={24} color="red" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+            </ScrollView>
             {editingExercise ? <ExerciseChart history={visibleData}/> : null}
-            <View style={{top: '50%'}}>
+            <View style={{}}>
             <TouchableOpacity style={[styles.button]} onPress={addSet}>
             <Text style={styles.buttonText}>Add Set</Text>
             </TouchableOpacity>
@@ -628,9 +630,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   modalContent: {
-    width: 300,
-    padding: 20,
+    flex: 1,
+    width: '100%',
     backgroundColor: 'white',
+    padding: 20,
     borderRadius: 8,
     elevation: 5,
   },
@@ -638,7 +641,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
-    maxHeight: '50%',
   },
   setDetailText: {
     marginRight: 10,
