@@ -1,10 +1,11 @@
-import { View, Text, FlatList, TouchableHighlight, Button, TextInput, Modal, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableHighlight, Button, ScrollView, TextInput, Modal, StyleSheet, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import { Exercise, HistoryEntry } from '../navigations/types';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import ExerciseChart from '../components/ExerciseChart';
 import { useFirebase } from '../services/FirebaseContext';
+
 
 const MasterExerciseDirectoryScreen = () => {
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
@@ -190,7 +191,7 @@ const MasterExerciseDirectoryScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text>MasterExerciseDirectoryScreen</Text>
+      <Text style={styles.heading}>Master Exercise List</Text>
       <FlatList
         data={masterExerciseDirectory}
         renderItem={({ item }) => (
@@ -215,14 +216,16 @@ const MasterExerciseDirectoryScreen = () => {
           setEditingExercise(null);
         }}
       >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <View style={{ width: 300, padding: 20, backgroundColor: 'white' }}>
-            <Text>{editingExercise ? 'Edit Exercise' : 'Add Exercise'}</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', paddingTop: 20,}}>
+          <View style={{ width: '100%', height: '100%', padding: 20, backgroundColor: 'white' }}>
+            <Text style={{fontSize: 18, fontWeight: 'bold', marginBottom: 16, width: '100%', textAlign: 'center',}}>{editingExercise ? 'Edit Exercise' : 'Add Exercise'}</Text>
             <TextInput
               placeholder="Title"
               value={newExerciseTitle}
               onChangeText={text => setNewExerciseTitle(text)}
             />
+            <ScrollView>
+              <View>
             {setDetail.map((setDetail, index) => (
               <View key={`setDetail-${index}`} style={styles.setDetailContainer}>
                 <Text style={styles.setDetailText}>
@@ -247,13 +250,41 @@ const MasterExerciseDirectoryScreen = () => {
                 </TouchableOpacity>
               </View>
             ))}
+            </View>
+            </ScrollView>
             {editingExercise ? <ExerciseChart history={visibleData}/> : null}
-            <Button title={editingExercise ? 'Update' : 'Add'} onPress={editingExercise ? updateExercise : addExercise} />
-            <Button title="Delete" onPress={() => handleDeleteExercise()} />
-            <Button title="Cancel" onPress={() => {
-              setShowAddExerciseModal(false);
-              setEditingExercise(null);
-            }} />
+            <TouchableOpacity style={styles.touchableButton} onPress={addSet}>
+              <Text style={styles.buttonText}>Add Set</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.touchableButton}
+              onPress={editingExercise ? updateExercise : addExercise}
+            >
+              <Text style={styles.buttonText}>
+                {editingExercise ? 'Update' : 'Add'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.touchableButton, styles.deleteButton]}
+              onPress={() => handleDeleteExercise()}
+            >
+              <Text style={[[styles.buttonText]]}>
+                Delete
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.touchableButton}
+              onPress={() => {
+                setShowAddExerciseModal(false);
+                setEditingExercise(null);
+              }}
+            >
+              <Text style={styles.buttonText}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -269,6 +300,14 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#f0f0f0',
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    marginTop: 56,
+    width: '100%',
+    textAlign: 'center',
   },
   exerciseItem: {
     backgroundColor: 'white',
@@ -303,5 +342,22 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     paddingRight: 10,
+  },
+  touchableButton: {
+    padding: 15,
+    marginBottom: 15,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+    color: 'black',
+    backgroundColor: '#3498db'
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  deleteButton: {
+    backgroundColor: '#e74c3c', // Red color for delete button
   },
 });

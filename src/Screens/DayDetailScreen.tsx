@@ -511,7 +511,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
 
               {editingExercise && (
                 <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={deleteExercise}>
-                  <Text style={[styles.buttonText, { color: 'red' }]}>Delete</Text>
+                  <Text style={[styles.buttonText, { color: 'white' }]}>Delete</Text>
                 </TouchableOpacity>
               )}
             <TouchableOpacity onPress={() => {

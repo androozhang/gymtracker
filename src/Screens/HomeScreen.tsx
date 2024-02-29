@@ -30,7 +30,7 @@ const HomeScreen = ({ navigation }: RouterProps) => {
 
   return (
     <View style={styles.container}>
-      <View style={{flex: 1, flexDirection: 'row'}}>
+      <View style={{flex: 1, flexDirection: 'row', zIndex: 1}}>
       <TouchableOpacity
         style={{  alignSelf: 'flex-start', marginTop: 15, marginLeft: '5%', width: '22%'}}
         onPress={() => navigation.navigate('MasterExerciseDirectory')}
@@ -48,16 +48,15 @@ const HomeScreen = ({ navigation }: RouterProps) => {
         style={styles.dropdown}
         labelStyle={styles.dropdownLabel}
         dropDownContainerStyle={styles.dropdownListContainer}
-        TickIconComponent={({style})=><Ionicons name="add" size={24} color="white" />}  
+        
       />
       </View>
       <FlatList
         data={days}
         renderItem={({ item }) => renderDayCard(item)}
         keyExtractor={(item) => item}
-        style={{ width: '100%', bottom: '5%'}}
+        style={{ width: '100%', bottom: '5%', zIndex: 0}}
       />
-      
     </View>
   );
 };
@@ -68,6 +67,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
     top: 50,
+    zIndex: 1
   },
   header: {
     fontSize: 18,
@@ -78,16 +78,16 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
     width: '50%',
+    zIndex: 1000,
   },
   dropdown: {
-    backgroundColor: '#fafafa',
   },
   dropdownLabel: {
     fontSize: 16,
     textAlign: 'center',
   },
   dropdownListContainer: {
-    backgroundColor: '#fafafa',
+    zIndex: 1000,
   },
   dayCard: {
     borderWidth: 1,
