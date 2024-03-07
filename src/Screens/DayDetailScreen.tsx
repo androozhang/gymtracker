@@ -395,12 +395,18 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           setDetail: masterExercise.setDetail, 
           reference: [...existingReference, `${user.uid}/workoutPlans/${weekSet}/days/${day}`],
         });
+
+        await exercisesRef.doc(masterExercise.id).collection('history').doc(new Date().toISOString().split('T')[0]).set({
+          date: new Date().toISOString().split('T')[0],
+          sets: masterExercise.sets,
+          setDetail: masterExercise.setDetail,
+        });
   
         await masterExercisesRef.doc(masterExercise.id).set({
-          title: newExerciseTitle,
-          sets: value,
-          repRange: newExerciseRepRange,
-          setDetail: setDetail,  
+          title: masterExercise.title,
+          sets: masterExercise.sets,
+          repRange: masterExercise.repRange,
+          setDetail: masterExercise.setDetail, 
           reference: [...existingReference, `${user.uid}/workoutPlans/${weekSet}/days/${day}`],
         });
   
@@ -433,9 +439,9 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         renderItem={({ item }) => (
           <TouchableHighlight onPress={() => handleEditExercise(item)}>
             <View style={styles.exerciseItem}>
-              <Text style={styles.exerciseTitle}>Exercise Title: {item.title}</Text>
+              <Text style={styles.exerciseTitle}>{item ? item.title : 'No name'}</Text>
               <Text>Sets: {item.setDetail.length}</Text>
-              <Text>Weight: {item.setDetail[0].weight}lbs x {item.setDetail[0].repRange}-{item.setDetail[item.setDetail.length - 1].repRange}</Text>
+              <Text>{item.setDetail[0].weight}lbs {item.setDetail[0].repRange}-{item.setDetail[item.setDetail.length - 1].repRange}</Text>
             </View>
           </TouchableHighlight>
         )}

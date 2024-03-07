@@ -30,7 +30,7 @@ const HomeScreen = ({ navigation }: RouterProps) => {
 
   return (
     <View style={styles.container}>
-      <View style={{flex: 1, flexDirection: 'row', zIndex: 1}}>
+      <View style={{flex: 1, flexDirection: 'row', zIndex: 1, paddingBottom: 0, marginBottom: 0}}>
       <TouchableOpacity
         style={{  alignSelf: 'flex-start', marginTop: 15, marginLeft: '5%', width: '22%'}}
         onPress={() => navigation.navigate('MasterExerciseDirectory')}
@@ -55,7 +55,7 @@ const HomeScreen = ({ navigation }: RouterProps) => {
         data={days}
         renderItem={({ item }) => renderDayCard(item)}
         keyExtractor={(item) => item}
-        style={{ width: '100%', bottom: '5%', zIndex: 0}}
+        style={{ width: '100%', bottom: '0%'}}
       />
     </View>
   );
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
-    height: 60,
+    height: 70,
   },
   dayText: {
     fontSize: 16,

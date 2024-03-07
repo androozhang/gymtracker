@@ -16,7 +16,7 @@ const MasterExercisesList: FC<MasterExercisesListProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
+      <Text style={styles.heading}>
         Master Exercises List
       </Text>
       <FlatList
@@ -26,9 +26,9 @@ const MasterExercisesList: FC<MasterExercisesListProps> = ({
         renderItem={({ item }) => (
           <TouchableHighlight onPress={() => addMasterExerciseToCurrentDay(item)}>
             <View style={styles.exerciseItem}>
-              <Text>Exercise Title: {item.title}</Text>
-              <Text>Sets: {item.sets}</Text>
-              <Text>Rep Range: {item.repRange}</Text>
+              <Text style={styles.exerciseTitle}>{item.title ? item.title: 'No name'}</Text>
+              <Text>Sets: {item.setDetail.length}</Text>
+              <Text>{item.setDetail[0].weight}lbs {item.setDetail[0].repRange}-{item.setDetail[item.setDetail.length - 1].repRange}</Text>
             </View>
           </TouchableHighlight>
         )}
@@ -42,8 +42,16 @@ const MasterExercisesList: FC<MasterExercisesListProps> = ({
 const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: 'white',
-      padding: 60,
+      padding: 16,
+      backgroundColor: '#f0f0f0',
+    },
+    heading: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 16,
+      marginTop: 56,
+      width: '100%',
+      textAlign: 'center',
     },
     title: {
       fontSize: 20,
@@ -52,7 +60,15 @@ const styles = StyleSheet.create({
       alignContent: 'center',
     },
     exerciseItem: {
+      backgroundColor: 'white',
+      padding: 16,
       marginBottom: 16,
+      borderRadius: 8,
+      elevation: 2,
+    },
+    exerciseTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
     },
   });
   

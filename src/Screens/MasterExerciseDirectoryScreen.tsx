@@ -144,6 +144,7 @@ const MasterExerciseDirectoryScreen = () => {
   }
 
   const updateExercise = async () => {
+    const currentDate = new Date().toISOString().split('T')[0];
     try {
       if (editingExercise && user) {
         await Promise.all(
@@ -158,6 +159,40 @@ const MasterExerciseDirectoryScreen = () => {
                 sets: value,
                 setDetail: setDetail,  
               });
+            const exerciseDocRef = firestore()
+            .collection('users')
+            .doc(reference)
+            .collection('exercises')
+            .doc(editingExercise.id);
+            const historyRef = exerciseDocRef.collection('history').doc(currentDate);
+            const existingEntrySnapshot = await historyRef.get();
+            if (existingEntrySnapshot) {
+              await historyRef.update({
+                date: currentDate,
+                sets: newExerciseSets,
+                setDetail: setDetail,
+              });
+
+              await exerciseDocRef.update({
+                title: newExerciseTitle,
+                sets: newExerciseSets,
+                setDetail: setDetail,
+              });
+            }
+            else {
+              await historyRef.update({
+                date: currentDate,
+                sets: newExerciseSets,
+                setDetail: setDetail,
+              });
+
+              await exerciseDocRef.set({
+                title: newExerciseTitle,
+                sets: newExerciseSets,
+                setDetail: setDetail,
+              });
+            }
+              
           })
         );
         await masterExerciseDirectoryRef.doc(editingExercise.id).update({
@@ -165,6 +200,13 @@ const MasterExerciseDirectoryScreen = () => {
           sets: value,
           setDetail: setDetail, 
         });
+
+        await masterExerciseDirectoryRef.doc(editingExercise.id).collection('history').doc(currentDate).set({
+          date: currentDate,
+          sets: newExerciseSets,
+          setDetail: setDetail,
+        });
+        
         fetchMasterExerciseDirectory();
         setShowAddExerciseModal(false);
         setEditingExercise(null);
@@ -199,9 +241,9 @@ const MasterExerciseDirectoryScreen = () => {
             onPress={() => handleEditExercise(item)}
           >
             <View style={styles.exerciseItem}>
-              <Text style={styles.exerciseTitle}>Exercise Title: {item.title}</Text>
-              <Text>Sets: {item.sets}</Text>
-              <Text>Rep Range: {item.repRange}</Text>
+              <Text style={styles.exerciseTitle}>{item.title ? item.title: 'No name'}</Text>
+              <Text>Sets: {item.setDetail.length}</Text>
+              <Text>{item.setDetail[0].weight}lbs {item.setDetail[0].repRange}-{item.setDetail[item.setDetail.length - 1].repRange}</Text>
             </View>
           </TouchableHighlight>
         )}
@@ -223,6 +265,7 @@ const MasterExerciseDirectoryScreen = () => {
               placeholder="Title"
               value={newExerciseTitle}
               onChangeText={text => setNewExerciseTitle(text)}
+              style={{ borderColor: 'gray', padding: 8, marginBottom: 10, fontSize: 16 }}
             />
             <ScrollView>
               <View>
