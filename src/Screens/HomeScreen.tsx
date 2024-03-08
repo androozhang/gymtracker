@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#f0f0f0',
     top: 50,
     zIndex: 1
   },
@@ -79,6 +79,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     width: '50%',
     zIndex: 1000,
+    borderColor: 'black',
+    shadowColor: 'rgba(0,0,0, 1)', 
+    shadowOffset: { height: 3, width: 3 }, 
+    shadowOpacity: 1, 
+    shadowRadius: 0, 
   },
   dropdown: {
   },
@@ -90,12 +95,18 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   dayCard: {
-    borderWidth: 1,
-    borderColor: '#ccc',
+    borderWidth: 0.5,
+    borderColor: 'black',
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
     height: 70,
+    shadowColor: 'rgba(0,0,0, 1)', 
+    shadowOffset: { height: 3, width: 3 }, 
+    shadowOpacity: 1, 
+    shadowRadius: 0, 
+    backgroundColor: '#fff',
+    width: '99%',
   },
   dayText: {
     fontSize: 16,

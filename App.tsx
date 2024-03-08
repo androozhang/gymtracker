@@ -83,21 +83,30 @@ export default function App() {
     <FirebaseProvider>
       <NavigationContainer>
         {user ? (
-          <Tab.Navigator initialRouteName="Home">
+          <Tab.Navigator initialRouteName="Home" screenOptions={{
+            tabBarStyle: { height: '10%', alignContent: 'center', justifyContent: 'center', backgroundColor: 'white', borderTopColor: 'black', borderTopWidth: 0.5, paddingTop: 5},
+          }}>
             <Tab.Screen
               name="Home"
               component={HomeStackScreen}
               options={{
                 headerShown: false,
-                tabBarIcon: () => <Ionicons name="home" size={24} color="black" />,
+                tabBarIcon: ({focused}) => {return focused ? 
+                <Ionicons name="home" size={24} color="black"/> : 
+                <Ionicons name="home-outline" size={24} color="black" />},
+                tabBarLabelStyle: {color: 'black', fontSize: 12},
+                
               }}
             />
             <Tab.Screen
               name="Profile"
               component={ProfileStackScreen}
               options={{ headerShown: false,
-                tabBarIcon: () => <Ionicons name="person" size={24} color="black" />,
-               }}
+                tabBarIcon: ({focused}) => {return focused ? 
+                  <Ionicons name="person" size={24} color="black" /> : 
+                  <Ionicons name="person-outline" size={24} color="black" />},
+                  tabBarLabelStyle: {color: 'black', fontSize: 12},
+                }}
             />
           </Tab.Navigator>
         ) : (

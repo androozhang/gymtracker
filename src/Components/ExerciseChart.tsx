@@ -37,8 +37,29 @@ const ExerciseChart: React.FC<ExerciseChartProps> = ({ history }) => {
     return formattedDate;
   };
 
+  const emptyData = {
+    labels: ['No Data'],
+    datasets: [
+      {
+        data: [0],
+      },
+    ],
+  };
+
   if (!history || history.length === 0) {
-    return <Text>No data</Text>;
+    return <LineChart
+          data={emptyData}
+          width={screenWidth}
+          height={220}
+          chartConfig={chartConfig}
+          bezier
+          style={{
+            marginVertical: 20,
+            borderRadius: 16,
+            borderColor: '#000',
+            borderWidth: 1,
+          }}
+        />;
   }
 
   const formattedData = {
@@ -59,8 +80,10 @@ const ExerciseChart: React.FC<ExerciseChartProps> = ({ history }) => {
         chartConfig={chartConfig}
         bezier
         style={{
-          marginVertical: 8,
+          marginVertical: 20,
           borderRadius: 16,
+          borderColor: '#000',
+          borderWidth: 1,
         }}
       />
     </View>

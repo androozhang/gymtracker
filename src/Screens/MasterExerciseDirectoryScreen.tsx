@@ -1,4 +1,4 @@
-import { View, Text, FlatList, TouchableHighlight, Button, ScrollView, TextInput, Modal, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableHighlight, Button, ScrollView, TextInput, Modal, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import { Exercise, HistoryEntry } from '../navigations/types';
@@ -206,7 +206,7 @@ const MasterExerciseDirectoryScreen = () => {
           sets: newExerciseSets,
           setDetail: setDetail,
         });
-        
+
         fetchMasterExerciseDirectory();
         setShowAddExerciseModal(false);
         setEditingExercise(null);
@@ -231,11 +231,27 @@ const MasterExerciseDirectoryScreen = () => {
     setSetDetail(exercise.setDetail);
   };
 
+  const showDeleteConfirmation = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete this exercise? This action is irreversible.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        { text: 'Delete', onPress: () => handleDeleteExercise() },
+      ],
+      { cancelable: false }
+    );
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Master Exercise List</Text>
       <FlatList
         data={masterExerciseDirectory}
+        style={{paddingTop: 10, paddingBottom: 10}}
         renderItem={({ item }) => (
           <TouchableHighlight
             onPress={() => handleEditExercise(item)}
@@ -256,18 +272,30 @@ const MasterExerciseDirectoryScreen = () => {
         onRequestClose={() => {
           setShowAddExerciseModal(false);
           setEditingExercise(null);
+          setNewExerciseTitle('');
+          updateExercise();
         }}
       >
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', paddingTop: 20,}}>
           <View style={{ width: '100%', height: '100%', padding: 20, backgroundColor: 'white' }}>
-            <Text style={{fontSize: 18, fontWeight: 'bold', marginBottom: 16, width: '100%', textAlign: 'center',}}>{editingExercise ? 'Edit Exercise' : 'Add Exercise'}</Text>
+          <View style={{ flexDirection: 'row', height: 50, alignItems: 'center' }}>
+              <Text style={styles.heading}>{editingExercise ? 'Edit Exercise' : 'Add Exercise'}</Text>
+              <TouchableOpacity onPress={() => {
+               setShowAddExerciseModal(false);
+               setEditingExercise(null);
+               setNewExerciseTitle('');
+               updateExercise();
+            }} style={{marginLeft: 'auto',}}>
+              <Ionicons name="return-down-back-outline" size={24} color="black" />
+            </TouchableOpacity>
+            </View>
             <TextInput
               placeholder="Title"
               value={newExerciseTitle}
               onChangeText={text => setNewExerciseTitle(text)}
-              style={{ borderColor: 'gray', padding: 8, marginBottom: 10, fontSize: 16 }}
+              style={styles.editExerciseTitle}
             />
-            <ScrollView>
+            <ScrollView style={{minHeight: '21%', maxHeight: '21%', paddingTop: 15}}>
               <View>
             {setDetail.map((setDetail, index) => (
               <View key={`setDetail-${index}`} style={styles.setDetailContainer}>
@@ -289,7 +317,7 @@ const MasterExerciseDirectoryScreen = () => {
                 />
                 <Text style={styles.label}>reps</Text>
                 <TouchableOpacity onPress={() => handleDeleteSet(index)}>
-                  <Ionicons name="trash-bin" size={24} color="red" />
+                  <Ionicons name="remove-circle-outline" size={24} color="black" />
                 </TouchableOpacity>
               </View>
             ))}
@@ -299,7 +327,9 @@ const MasterExerciseDirectoryScreen = () => {
             <TouchableOpacity style={styles.touchableButton} onPress={addSet}>
               <Text style={styles.buttonText}>Add Set</Text>
             </TouchableOpacity>
-            <TouchableOpacity
+            {
+              editingExercise ? null : 
+              <TouchableOpacity
               style={styles.touchableButton}
               onPress={editingExercise ? updateExercise : addExercise}
             >
@@ -308,24 +338,14 @@ const MasterExerciseDirectoryScreen = () => {
               </Text>
             </TouchableOpacity>
 
+            }
+
             <TouchableOpacity
-              style={[styles.touchableButton, styles.deleteButton]}
-              onPress={() => handleDeleteExercise()}
+              style={[styles.touchableButton]}
+              onPress={() => showDeleteConfirmation()}
             >
               <Text style={[[styles.buttonText]]}>
                 Delete
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.touchableButton}
-              onPress={() => {
-                setShowAddExerciseModal(false);
-                setEditingExercise(null);
-              }}
-            >
-              <Text style={styles.buttonText}>
-                Cancel
               </Text>
             </TouchableOpacity>
           </View>
@@ -343,14 +363,14 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#f0f0f0',
+    top: 50,
   },
   heading: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    marginTop: 56,
+    fontSize: 24,
+    fontWeight: '300',
     width: '100%',
     textAlign: 'center',
+    height: 'auto'
   },
   exerciseItem: {
     backgroundColor: 'white',
@@ -358,6 +378,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 8,
     elevation: 2,
+    borderColor: 'black',
+    borderWidth: 0.5,
+    shadowColor: 'rgba(0,0,0, 1)', 
+    shadowOffset: { height: 3, width: 3 }, 
+    shadowOpacity: 1, 
+    shadowRadius: 0, 
+    width: '99%'
   },
   exerciseTitle: {
     fontSize: 16,
@@ -387,20 +414,35 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   touchableButton: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
     padding: 15,
-    marginBottom: 15,
     borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
-    color: 'black',
-    backgroundColor: '#3498db'
+    marginBottom: 10,
+    marginHorizontal: 0,
+    borderColor: 'black',
+    borderWidth: 0.5,
+    shadowColor: 'rgba(0,0,0, 1)', 
+    shadowOffset: { height: 3, width: 3 }, 
+    shadowOpacity: 1, 
+    shadowRadius: 0, 
   },
   buttonText: {
-    color: 'white',
+    color: 'black',
     fontSize: 16,
     fontWeight: 'bold',
   },
   deleteButton: {
     backgroundColor: '#e74c3c', // Red color for delete button
+  },
+  editExerciseTitle: {
+    fontSize: 16,
+    fontWeight: '200',
+    borderColor: 'black',
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 10,
+    marginBottom: 10,
+    width: '100%',
   },
 });

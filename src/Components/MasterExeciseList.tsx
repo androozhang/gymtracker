@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { View, FlatList, Text, TouchableHighlight, Button, StyleSheet } from 'react-native';
+import { View, FlatList, Text, TouchableHighlight, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import { Exercise } from '../navigations/types';
 
 interface MasterExercisesListProps {
@@ -21,7 +21,7 @@ const MasterExercisesList: FC<MasterExercisesListProps> = ({
       </Text>
       <FlatList
         data={masterExercises}
-        style={{ width: '100%', height: '100%'}}
+        style={{paddingTop: 10, paddingBottom: 10}}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableHighlight onPress={() => addMasterExerciseToCurrentDay(item)}>
@@ -33,7 +33,14 @@ const MasterExercisesList: FC<MasterExercisesListProps> = ({
           </TouchableHighlight>
         )}
       />
-      <Button title="Cancel" onPress={onClose} />
+      <TouchableOpacity
+        style={[styles.touchableButton]}
+        onPress={() => onClose()}
+      >
+        <Text style={[[styles.buttonText]]}>
+          Cancel
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -44,14 +51,14 @@ const styles = StyleSheet.create({
       flex: 1,
       padding: 16,
       backgroundColor: '#f0f0f0',
+      top: 50,
     },
     heading: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginBottom: 16,
-      marginTop: 56,
+      fontSize: 24,
+      fontWeight: '300',
       width: '100%',
       textAlign: 'center',
+      height: 'auto'
     },
     title: {
       fontSize: 20,
@@ -65,8 +72,34 @@ const styles = StyleSheet.create({
       marginBottom: 16,
       borderRadius: 8,
       elevation: 2,
+      borderColor: 'black',
+      borderWidth: 0.5,
+      shadowColor: 'rgba(0,0,0, 1)', 
+      shadowOffset: { height: 3, width: 3 }, 
+      shadowOpacity: 1, 
+      shadowRadius: 0, 
+      width: '99%'
     },
     exerciseTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    touchableButton: {
+      flexDirection: 'row',
+      backgroundColor: 'white',
+      padding: 15,
+      borderRadius: 8,
+      bottom: '30%',
+      marginHorizontal: 0,
+      borderColor: 'black',
+      borderWidth: 0.5,
+      shadowColor: 'rgba(0,0,0, 1)', 
+      shadowOffset: { height: 3, width: 3 }, 
+      shadowOpacity: 1, 
+      shadowRadius: 0, 
+    },
+    buttonText: {
+      color: 'black',
       fontSize: 16,
       fontWeight: 'bold',
     },

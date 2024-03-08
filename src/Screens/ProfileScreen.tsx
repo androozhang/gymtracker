@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, View, Button, Text, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, View, Button, Text, TouchableOpacity, Alert, Linking, Image } from 'react-native';
 import { NavigationProp } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
-
+import Ionicons from '@expo/vector-icons/Ionicons';
 interface RouterProps {
   navigation: NavigationProp<any, any>;
 }
@@ -26,25 +26,49 @@ const ProfileScreen = ({ navigation }: RouterProps) => {
   const handleDeleteAccount = async () => {
     try {
       await auth().currentUser?.delete();
-      // You may want to navigate to a different screen after deleting the account.
-      // For example: navigation.navigate('Welcome');
     } catch (error: any) {
       console.error('Error deleting account:', error.message);
-      // Handle error accordingly, show error message, etc.
     }
   };
+
+  const handleSendFeedback = () => {
+    Linking.openURL('mailto:zandrew129@gmail.com?subject=Feedback');
+  };
+
+  const handleHelperAndSupport = () => {
+    Linking.openURL('mailto:zandrew129@gmail.com?subject=Help and Support');
+  };
+
+  const handleReviewOnAppStore = () => {
+    Linking.openURL('https://apps.apple.com/us/app/6478719205');
+  };
+
+  const renderButton = (text: string, onPress: () => void, isDeleteButton: boolean = false) => (
+    <TouchableOpacity style={[styles.button]} onPress={onPress}>
+      <Text style={styles.buttonText}>{text}</Text>
+      <Ionicons name="chevron-forward-outline" size={24} color="black" style={styles.arrowIcon} />
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profile</Text>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => auth().signOut()}>
-          <Text style={styles.buttonText}>Logout</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={showDeleteConfirmation}>
-          <Text style={[styles.buttonText, styles.deleteButtonText]}>Delete Account</Text>
-        </TouchableOpacity>
+      
+      <View>
+        <Image
+          source={require('../../assets/newspaper.png')}
+          style={{ width: 250, height: 250, alignSelf: 'center'}}
+        />
       </View>
+      <View style={{borderColor: 'black', borderWidth: 0.5, width: '100%',  marginBottom: 15}}></View>
+      <View style={styles.buttonContainer}>
+        {renderButton('Logout', () => auth().signOut())}
+        {renderButton('Delete Account', showDeleteConfirmation, true)}
+        {renderButton('Send Feedback', handleSendFeedback)}
+        {renderButton('Helper and Support', handleHelperAndSupport)}
+        {renderButton('Review on App Store', handleReviewOnAppStore)}
+      </View>
+      <Text style={{marginTop: 30}}>Version 1.0.0</Text>
     </View>
   );
 };
@@ -52,34 +76,47 @@ const ProfileScreen = ({ navigation }: RouterProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
+    backgroundColor: '#f0f0f0',
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontWeight: '300',
+    marginBottom: 0,
+    marginTop: '20%',
   },
   buttonContainer: {
-    width: '80%',
+    width: '100%',
+    paddingHorizontal: 0,
   },
   button: {
-    backgroundColor: '#3498db',
+    flexDirection: 'row',
+    backgroundColor: 'white',
     padding: 15,
     borderRadius: 8,
-    marginBottom: 15,
-    alignItems: 'center',
+    marginBottom: 10,
+    marginHorizontal: 15,
+    borderColor: 'black',
+    borderWidth: 0.5,
+    shadowColor: 'rgba(0,0,0, 1)', 
+    shadowOffset: { height: 3, width: 3 }, 
+    shadowOpacity: 1, 
+    shadowRadius: 0, 
   },
   buttonText: {
-    color: 'white',
+    color: 'black',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '200',
   },
   deleteButton: {
-    backgroundColor: 'red',
+    backgroundColor: '#f0f0f0',
   },
   deleteButtonText: {
-    color: 'white',
+    color: 'black',
+  },
+  arrowIcon: {
+    marginLeft: 'auto',
   },
 });
 
