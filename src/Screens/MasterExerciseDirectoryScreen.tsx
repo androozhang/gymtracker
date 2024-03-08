@@ -111,7 +111,7 @@ const MasterExerciseDirectoryScreen = () => {
           setDetail: data.setDetail, 
           reference: data.reference,
         };  
-        console.log(data.setDetail);
+        //console.log(data.setDetail);
         masterExercises.push(exercise);
       });
       setMasterExerciseDirectory(masterExercises);
@@ -195,17 +195,41 @@ const MasterExerciseDirectoryScreen = () => {
               
           })
         );
-        await masterExerciseDirectoryRef.doc(editingExercise.id).update({
-          title: newExerciseTitle,
-          sets: value,
-          setDetail: setDetail, 
-        });
 
-        await masterExerciseDirectoryRef.doc(editingExercise.id).collection('history').doc(currentDate).set({
-          date: currentDate,
-          sets: newExerciseSets,
-          setDetail: setDetail,
-        });
+        const masterExerciseRef = masterExerciseDirectoryRef.doc(editingExercise.id);
+        const masterHistoryEntryRef = masterExerciseRef.collection('history').doc(currentDate);
+  
+        // Check if there's an entry for the current day in the master exercise
+        const existingMasterEntrySnapshot = await masterHistoryEntryRef.get();
+        if (existingMasterEntrySnapshot.exists) {
+          // Update the existing entry for the master exercise
+          await masterHistoryEntryRef.update({
+            date: currentDate,
+            sets: newExerciseSets,
+            setDetail: setDetail,
+          });
+
+          await masterExerciseRef.update({
+            title: newExerciseTitle,
+            sets: value,
+            setDetail: setDetail,
+          });
+          //console.log(masterExerciseRef.path)
+
+        } else {
+          // Add a new entry for the current day for the master exercise
+          await masterExerciseRef.update({
+            title: newExerciseTitle,
+            sets: value,
+            setDetail: setDetail,
+          });
+  
+          await masterHistoryEntryRef.set({
+            date: currentDate,
+            sets: newExerciseSets,
+            setDetail: setDetail,
+          });
+        }
 
         fetchMasterExerciseDirectory();
         setShowAddExerciseModal(false);
@@ -234,7 +258,7 @@ const MasterExerciseDirectoryScreen = () => {
   const showDeleteConfirmation = () => {
     Alert.alert(
       'Delete Account',
-      'Are you sure you want to delete this exercise? This action is irreversible.',
+      'Are you sure you want to delete this exercise? This action will delete it everywhere.',
       [
         {
           text: 'Cancel',

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
@@ -13,6 +13,7 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
 import { FirebaseProvider } from './src/services/FirebaseContext'; 
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { TouchableOpacity } from 'react-native';
 
 const HomeStack = createNativeStackNavigator<RootStackParamList>();
 const ProfileStack = createNativeStackNavigator<RootStackParamList>();
@@ -20,44 +21,80 @@ const AuthStack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
 
 function ProfileStackScreen() {
+  const navigation = useNavigation();
   return (
-    <ProfileStack.Navigator>
+    <ProfileStack.Navigator
+      screenOptions={{
+      headerShown: false,
+      headerLeft: () => (
+        <TouchableOpacity
+            onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="chevron-back-outline" size={24} color="black" />
+        </TouchableOpacity>
+       ),
+      }}
+    >
       <ProfileStack.Screen name="Profile" component={ProfileScreen} options={{headerShown: false}}/>
     </ProfileStack.Navigator>
   );
 }
 
 function HomeStackScreen() {
+  const navigation = useNavigation();
   return (
-    <HomeStack.Navigator>
+    <HomeStack.Navigator
+      screenOptions={{
+      headerShown: false,
+      headerLeft: () => (
+        <TouchableOpacity
+            onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="chevron-back-outline" size={24} color="black" />
+        </TouchableOpacity>
+       ),
+      }}
+    >
       <HomeStack.Screen name="Home" component={HomeScreen} options={{headerShown: false}}/>
-      <HomeStack.Screen name="DayDetail" component={DayDetailScreen} options={{headerShown: false}}/>
+      <HomeStack.Screen name="DayDetail" component={DayDetailScreen} options={{headerShown: true, headerTransparent: true, headerTitle: ''}}/>
       <HomeStack.Screen
         name="MasterExerciseDirectory"
         component={MasterExerciseDirectoryScreen}
-        options={{headerShown: false}}
+        options={{headerShown: true, headerTransparent: true, headerTitle: ''}}
       />
     </HomeStack.Navigator>
   );
 }
 
 function AuthStackScreen() {
+  const navigation = useNavigation();
   return (
-    <AuthStack.Navigator>
+    <AuthStack.Navigator
+      screenOptions={{
+      headerShown: false,
+      headerLeft: () => (
+        <TouchableOpacity
+            onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="chevron-back-outline" size={24} color="black" />
+        </TouchableOpacity>
+       ),
+      }}
+    >
       <AuthStack.Screen
         name="Login"
         component={LoginScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, headerTransparent: true, headerTitle: ''}}
       />
       <AuthStack.Screen
         name="Register"
         component={RegisterScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: true, headerTransparent: true, headerTitle: ''}}
       />
       <AuthStack.Screen
         name="ResetPassword"
         component={ResetPasswordScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: true, headerTransparent: true, headerTitle: ''}}
       />
     </AuthStack.Navigator>
   );
@@ -92,7 +129,7 @@ export default function App() {
               options={{
                 headerShown: false,
                 tabBarIcon: ({focused}) => {return focused ? 
-                <Ionicons name="home" size={24} color="black"/> : 
+                <Ionicons name="home-sharp" size={24} color="black"/> : 
                 <Ionicons name="home-outline" size={24} color="black" />},
                 tabBarLabelStyle: {color: 'black', fontSize: 12},
                 

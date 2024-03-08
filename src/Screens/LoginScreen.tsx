@@ -1,4 +1,4 @@
-import { View, Text, TextInput, StyleSheet, ActivityIndicator, Button, KeyboardAvoidingView, TouchableOpacity } from 'react-native'
+import { View, Text, TextInput, StyleSheet, ActivityIndicator, Image, KeyboardAvoidingView, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useNavigation } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
@@ -31,7 +31,7 @@ const LoginScreen = () => {
       const response = await auth().signInWithEmailAndPassword(email, password);
     } catch (error: any) {
       alert('Sign in failed: ' + error.message);
-      console.log(error);
+      //console.log(error);
     } finally {
       setLoading(false);
     }
@@ -110,20 +110,29 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView behavior='padding'>
+      <View>
+        <View style={{marginVertical: 6}}>
+        <Image source={require('../../assets/logo_transparent.png')} style={{ width: 150, height: 100, alignSelf: 'center'}} />
         <TextInput value={email} style={styles.input} placeholder='Email' autoCapitalize='none' onChangeText={(text) => setEmail(text)} />
         <TextInput secureTextEntry={true} value={password} style={styles.input} placeholder='Password' autoCapitalize='none' onChangeText={(text) => setPassword(text)} />
-
+        </View>
+        
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
           <>
-            <TouchableOpacity style={styles.loginButton} onPress={signIn}>
-              <Text style={styles.loginButtonText}>Login</Text>
-            </TouchableOpacity>
-            <Button title="Create Account" onPress={() => navigation.navigate('Register')} />
-            <Button title="Forgot Password" onPress={() => navigation.navigate('ResetPassword')} />
-
+              
+              <TouchableOpacity style={styles.loginButton} onPress={signIn}>
+                <Text style={styles.loginButtonText}>Login</Text>
+              </TouchableOpacity>
+              <View style={{borderColor: 'black', borderWidth: 0.5, width: '100%',  marginVertical: 25}}></View>
+              <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('Register')}>
+                <Text style={styles.loginButtonText}>Create Account</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('ResetPassword')}>
+                <Text style={styles.loginButtonText}>Forgot Password</Text>
+              </TouchableOpacity>
+            
             <View style={{
               flexDirection: 'column',
               justifyContent: 'center',
@@ -149,7 +158,7 @@ const LoginScreen = () => {
 
           </>
         )}
-      </KeyboardAvoidingView>
+      </View>
     </View>
   );
 };
@@ -159,7 +168,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     flex: 1,
     justifyContent: 'center',
-    marginTop: 100,
+    marginTop: 0,
   },
   input: {
     marginVertical: 4,
@@ -170,20 +179,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   loginButton: {
-    marginTop: 10,
-    backgroundColor: '#007bff',
-    paddingVertical: 15,
-    borderRadius: 4,
-    alignItems: 'center',
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+    marginHorizontal: 0,
+    borderColor: 'black',
+    borderWidth: 0.5,
+    shadowColor: 'rgba(0,0,0, 1)', 
+    shadowOffset: { height: 3, width: 3 }, 
+    shadowOpacity: 1, 
+    shadowRadius: 0, 
+    minWidth: '100%',
   },
   loginButtonText: {
-    color: '#fff',
+    color: 'black',
     fontSize: 16,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginVertical: 10,
+    fontWeight: 'bold',
   },
   appleButton: {
     width: 45,

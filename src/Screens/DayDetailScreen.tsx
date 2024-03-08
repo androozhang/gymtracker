@@ -86,8 +86,6 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const updateRepRange = (index: number, text: string) => {
     const newSetDetail = [...setDetail];
     newSetDetail[index].repRange = text;
-    console.log("text", text)
-    console.log("newsetDetail[index].repRange", newSetDetail[index].repRange)
     setSetDetail(newSetDetail);
   };
   const updateWeight = (index: number, text: string) => {
@@ -321,7 +319,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
               sets: value,
               setDetail: setDetail,
             });
-            console.log(masterExerciseRef.path)
+            //console.log(masterExerciseRef.path)
   
           } else {
             // Add a new entry for the current day for the master exercise

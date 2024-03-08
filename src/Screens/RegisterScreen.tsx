@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ActivityIndicator, Button, KeyboardAvoidingView } from 'react-native';
+import { View, Text, Image, TextInput, StyleSheet, ActivityIndicator, KeyboardAvoidingView, TouchableOpacity} from 'react-native';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
@@ -42,16 +42,21 @@ const RegisterScreen = () => {
 
   return (
     <View style={style.container}>
-      <KeyboardAvoidingView behavior='padding'>
+      <View>
+        <Image source={require('../../assets/landscape.png')} style={{ width: 250, height: 250, alignSelf: 'center'}}></Image>
         <TextInput value={name} style={style.input} placeholder='Name' autoCapitalize='words' onChangeText={(text) => setName(text)}></TextInput>
         <TextInput value={email} style={style.input} placeholder='Email' autoCapitalize='none' onChangeText={(text) => setEmail(text)}></TextInput>
         <TextInput secureTextEntry={true} value={password} style={style.input} placeholder='Password' autoCapitalize='none' onChangeText={(text) => setPassword(text)}></TextInput>
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
-          <Button title="Create Account" onPress={signUp} />
+          <View style={{marginVertical: 6}}>
+          <TouchableOpacity style={style.loginButton} onPress={signUp}>
+                <Text style={style.loginButtonText}>Create Account</Text>
+          </TouchableOpacity>
+          </View>
         )}
-      </KeyboardAvoidingView>
+      </View>
     </View>
   );
 };
@@ -71,5 +76,24 @@ const style = StyleSheet.create({
     borderRadius: 4,
     padding: 10,
     backgroundColor: '#fff'
-  }
+  },
+  loginButton: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+    marginHorizontal: 0,
+    borderColor: 'black',
+    borderWidth: 0.5,
+    shadowColor: 'rgba(0,0,0, 1)', 
+    shadowOffset: { height: 3, width: 3 }, 
+    shadowOpacity: 1, 
+    shadowRadius: 0, 
+    minWidth: '100%',
+  },
+  loginButtonText: {
+    color: 'black',
+    fontSize: 16,
+  },
 });

@@ -68,7 +68,7 @@ const ProfileScreen = ({ navigation }: RouterProps) => {
         {renderButton('Helper and Support', handleHelperAndSupport)}
         {renderButton('Review on App Store', handleReviewOnAppStore)}
       </View>
-      <Text style={{marginTop: 30}}>Version 1.0.0</Text>
+      <Text style={{marginTop: 30}}>Version 1.0.1</Text>
     </View>
   );
 };
