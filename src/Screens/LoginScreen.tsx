@@ -30,7 +30,7 @@ const LoginScreen = () => {
       // check if email is verified before logging in
       const response = await auth().signInWithEmailAndPassword(email, password);
     } catch (error: any) {
-      alert('Sign in failed: ' + error.message);
+      alert('Login failed. Please try again.');
       //console.log(error);
     } finally {
       setLoading(false);

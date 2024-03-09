@@ -68,8 +68,8 @@ const styles = StyleSheet.create({
     },
     exerciseItem: {
       backgroundColor: 'white',
-      padding: 16,
-      marginBottom: 16,
+      padding: 14,
+      marginBottom: 8,
       borderRadius: 8,
       elevation: 2,
       borderColor: 'black',

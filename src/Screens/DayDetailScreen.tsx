@@ -77,10 +77,10 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   }, [editingExercise]);
 
   const [setDetail, setSetDetail] = useState([
-    { set: 1, weight: 0, repRange: `10` }, // Initial set
+    { set: 1, weight: '0', repRange: `10` }, // Initial set
   ]);
   const addSet = () => {
-    const newSet = { set: setDetail.length + 1, weight: 0, repRange: `10` };
+    const newSet = { set: setDetail.length + 1, weight: '0', repRange: `10` };
     setSetDetail([...setDetail, newSet]);
   };
   const updateRepRange = (index: number, text: string) => {
@@ -90,12 +90,16 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   };
   const updateWeight = (index: number, text: string) => {
     const newSetDetail = [...setDetail];
-    newSetDetail[index].weight = parseInt(text) || 0;
+    newSetDetail[index].weight = text;
     setSetDetail(newSetDetail);
   }
   const handleDeleteSet = (index: number) => {
     const newSetDetail = setDetail.filter((set, i) => i !== index);
-    setSetDetail(newSetDetail);
+    const updatedSetDetail = newSetDetail.map((set, i) => {
+      return { ...set, set: i + 1 };
+    }
+    );
+    setSetDetail(updatedSetDetail);
   };
 
   const [showMasterExercisesList, setShowMasterExercisesList] = useState(false);
@@ -122,7 +126,8 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
             reference: data.reference,
           };
           // Only add the exercise to the masterExercises array if it is not already in the current day
-          if (data.reference && !data.reference.includes(`${user}/workoutPlans/${weekSet}/days/${day}`)) {
+          if (data.reference && !data.reference.includes(`${user.uid}/workoutPlans/${weekSet}/days/${day}`)) {
+            
             masterExercises.push(exercise);
           }
         });
@@ -147,9 +152,10 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
             title: data.title,
             sets: data.sets,
             repRange: data.repRange,
-            setDetail: data.setDetail || [{ set: 1, weight: 0, repRange: `10` }],  // Set default value if setDetail is not present
+            setDetail: data.setDetail || [{ set: 1, weight: '0', repRange: `10` }],  
             reference: data.reference,
           };
+          
           exercises.push(exercise);
         });
   
@@ -230,7 +236,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         setNewExerciseTitle('');
         setNewExerciseSets(3);
         setNewExerciseRepRange('8-12');
-        setSetDetail([{ set: 1, weight: 0, repRange: `10` }]);  // Reset setDetail
+        setSetDetail([{ set: 1, weight: '0', repRange: `10` }]);  // Reset setDetail
     
         refreshExercises();
         setShowAddExerciseModal(false);
@@ -460,15 +466,17 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           </TouchableHighlight>
         )}
       />
+      
       <View style={styles.addBox}>
       <TouchableOpacity
         style={styles.plusButton}
         onPress={() => setShowAddOptionModal(true)}
-      >
-        <Ionicons name="add-circle-outline" size={35} color="black" style={{}}/>
+      >  
+        <Ionicons name="add-outline" size={24} color="black" style={{marginRight: 6}}/>
+        <Text>Add Exercise</Text>
       </TouchableOpacity>
       </View>
-
+      
 
 
       <Modal
@@ -511,6 +519,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
                     Set {setDetail.set}
                   </Text>
                   <TextInput
+                    keyboardType='number-pad'
                     style={styles.setInput}
                     placeholder={`Weight`}
                     value={setDetail.weight.toString()}
@@ -518,6 +527,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
                   />
                   <Text style={styles.label}>lbs</Text>
                   <TextInput
+                    keyboardType="number-pad"
                     style={styles.setInput}
                     placeholder={`Reps`}
                     value={setDetail.repRange}
@@ -575,7 +585,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
               setNewExerciseTitle('');
               setNewExerciseSets(3);
               setNewExerciseRepRange('8-12');
-              setSetDetail([{ set: 1, weight: 0, repRange: `10` }]);
+              setSetDetail([{ set: 1, weight: '0', repRange: `10` }]);
               setShowAddOptionModal(false);
             }}
           >
@@ -639,8 +649,9 @@ const styles = StyleSheet.create({
     height: 'auto'
   },
   plusButton: {
+    flexDirection: 'row',
     borderRadius: 50,
-    width: 50,
+    width: 100,
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
@@ -648,8 +659,8 @@ const styles = StyleSheet.create({
   },
   exerciseItem: {
     backgroundColor: 'white',
-    padding: 16,
-    marginBottom: 16,
+    padding: 14,
+    marginBottom: 8,
     borderRadius: 8,
     elevation: 2,
     borderColor: 'black',
@@ -696,7 +707,22 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   addBox: {
+    position: 'absolute',
     alignItems: 'center',
+    borderColor: 'black',
+    backgroundColor: '#d3e9f4',
+    borderRadius: 8,
+    width: 150,
+    height: 50,
+    left: '50%',
+    marginLeft: -75,
+    marginBottom: 50,
+    borderWidth: 0.5,
+    shadowColor: 'rgba(0,0,0, 1)', 
+    shadowOffset: { height: 3, width: 3 }, 
+    shadowOpacity: 1, 
+    shadowRadius: 0, 
+    bottom: 30,
   },
   modalContainer: {
     flex: 1,

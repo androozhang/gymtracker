@@ -7,7 +7,7 @@ interface ExerciseChartProps {
     date: string;
     setDetail: Array<{
       set: number;
-      weight: number;
+      weight: string;
       repRange: string;
     }>;
   }>;
@@ -66,7 +66,7 @@ const ExerciseChart: React.FC<ExerciseChartProps> = ({ history }) => {
     labels: history.map((day) => formatDate(day.date)),
     datasets: [
       {
-        data: history.map((day) => day.setDetail[0].weight),
+        data: history.map((day) => parseInt(day.setDetail[0].weight)),
       },
     ],
   };

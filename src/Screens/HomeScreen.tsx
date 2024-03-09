@@ -79,13 +79,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     width: '50%',
     zIndex: 1000,
-    borderColor: 'black',
     shadowColor: 'rgba(0,0,0, 1)', 
     shadowOffset: { height: 3, width: 3 }, 
     shadowOpacity: 1, 
     shadowRadius: 0, 
   },
   dropdown: {
+    
   },
   dropdownLabel: {
     fontSize: 16,

@@ -4,7 +4,7 @@
     "slug": "gymtracker",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
+    "icon": "./assets/logo-filled.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -19,7 +19,7 @@
       "bundleIdentifier": "com.androozhang.gymtracker",
       "googleServicesFile": "./GoogleService-Info.plist",
       "usesAppleSignIn": true,
-      "buildNumber": "4"
+      "buildNumber": "7"
     },
     "android": {
       "googleServicesFile": "./google-services.json",

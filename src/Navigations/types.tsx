@@ -16,11 +16,7 @@ export type Exercise = {
   title: string;
   sets: number;
   repRange: string;
-  setDetail: Array<{
-    set: number;
-    weight: number;
-    repRange: string;
-  }>;
+  setDetail: SetDetail[];
   reference: string[];
   // ... other properties
 };
@@ -33,7 +29,7 @@ export type HistoryEntry = {
 
 export interface SetDetail {
   set: number;
-  weight: number;
+  weight: string;
   repRange: string;
 };
 
