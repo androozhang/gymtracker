@@ -41,6 +41,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
   const [visibleData, setVisibleData] = useState<HistoryEntry[]>([]);
   const [allData, setAllData] = useState<HistoryEntry[]>([]);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const [modalState, setModalState] = useState('addOptions');
   
 
   const fetchHistory = async () => {
@@ -438,65 +439,60 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
       { cancelable: false }
     );
   };
-  
 
-  if (loading) {
-    return <ActivityIndicator />;
-  }
+  const renderModalContent = () => {
+    switch (modalState) {
+      case 'addOptions':
+        return (
+          <View style={styles.modalContainer}>
+          <Image
+                source={require('../../assets/effortless.png')}
+                style={{ width: 300, height: 300, alignSelf: 'center'}}
+              />
+          <View style={{borderColor: 'black', borderWidth: 0.5, width: '100%',  marginBottom: 15}}></View>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                setEditingExercise(null);
+                setNewExerciseTitle('');
+                setNewExerciseSets(3);
+                setNewExerciseRepRange('8-12');
+                setSetDetail([{ set: 1, weight: '0', repRange: `10` }]);
+                setModalState('addExercise');
+              }}
+            >
+              <Text style={styles.buttonText}>Add Exercise</Text>
+            </TouchableOpacity>
 
-  return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-    <View style={styles.container}>
-      <Text style={styles.heading}>{`Details for ${day}`}</Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                setModalState('addFromMasterList');
+              }}
+            >
+              <Text style={styles.buttonText}>Add from Master List</Text>
+            </TouchableOpacity>
 
-      <FlatList
-        data={exercises}
-        keyExtractor={(item) => item.id}
-        style={{paddingTop: 10, paddingBottom: 10}}
-        renderItem={({ item }) => (
-          <TouchableHighlight onPress={() => handleEditExercise(item)}>
-            <View style={styles.exerciseItem}>
-              <Text style={styles.exerciseTitle}>{item ? item.title : 'No name'}</Text>
-              <Text>Sets: {item.setDetail.length}</Text>
-              <Text>{item.setDetail[0].weight}lbs {item.setDetail[0].repRange}-{item.setDetail[item.setDetail.length - 1].repRange}</Text>
-            </View>
-          </TouchableHighlight>
-        )}
-      />
-      
-      <View style={styles.addBox}>
-      <TouchableOpacity
-        style={styles.plusButton}
-        onPress={() => setShowAddOptionModal(true)}
-      >  
-        <Ionicons name="add-outline" size={24} color="black" style={{marginRight: 6}}/>
-        <Text>Add Exercise</Text>
-      </TouchableOpacity>
-      </View>
-      
-
-
-      <Modal
-        visible={showAddExerciseModal}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => {
-          setShowAddExerciseModal(false);
-          setEditingExercise(null);
-          setNewExerciseTitle('');
-          updateExercise();
-        }}
-        presentationStyle='pageSheet'
-      >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', paddingTop: 20,}}>
+            <TouchableOpacity
+              style={[styles.cancelButton, styles.modalButton]}
+              onPress={() => {
+                setShowAddOptionModal(false);
+              }}
+            >
+            <Text style={styles.buttonText}>Cancel</Text>
+          
+          </TouchableOpacity>
+        </View>
+        );
+      case 'addExercise':
+        return (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', paddingTop: 20,}}>
           <View style={{ width: '100%', height: '100%', padding: 10, backgroundColor: 'white' }}>
             <View style={{ flexDirection: 'row', height: 50, alignItems: 'center' }}>
               <Text style={styles.heading}>{editingExercise ? 'Edit Exercise' : 'Add Exercise'}</Text>
               <TouchableOpacity onPress={() => {
-               setShowAddExerciseModal(false);
+               setShowAddOptionModal(false);
+               setModalState('addOptions')
                setEditingExercise(null);
                setNewExerciseTitle('');
                updateExercise();
@@ -557,10 +553,57 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
             </View>
           </View>
         </View>
-      </Modal>
+        );
+      case 'addFromMasterList':
+        return (
+          <View style={styles.modalContainer}>   
+            <MasterExercisesList
+              masterExercises={masterExercises}
+              addMasterExerciseToCurrentDay={addMasterExerciseToCurrentDay}
+              onClose={() => {setModalState('addOptions'); setShowMasterExercisesModal(false)}}
+            />
+          </View>
+    );
+    }
+  };
+  
 
+  if (loading) {
+    return <ActivityIndicator />;
+  }
 
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+    <View style={styles.container}>
+      <Text style={styles.heading}>{`Details for ${day}`}</Text>
 
+      <FlatList
+        data={exercises}
+        keyExtractor={(item) => item.id}
+        style={{paddingTop: 10, paddingBottom: 10}}
+        renderItem={({ item }) => (
+          <TouchableHighlight onPress={() => handleEditExercise(item)}>
+            <View style={styles.exerciseItem}>
+              <Text style={styles.exerciseTitle}>{item ? item.title : 'No name'}</Text>
+              <Text>Sets: {item.setDetail.length}</Text>
+              <Text>{item.setDetail[0].weight}lbs {item.setDetail[0].repRange}-{item.setDetail[item.setDetail.length - 1].repRange}</Text>
+            </View>
+          </TouchableHighlight>
+        )}
+      />
+      
+      <View style={styles.addBox}>
+      <TouchableOpacity
+        style={styles.plusButton}
+        onPress={() => setShowAddOptionModal(true)}
+      >  
+        <Ionicons name="add-outline" size={24} color="black" style={{marginRight: 6}}/>
+        <Text>Add Exercise</Text>
+      </TouchableOpacity>
+      </View>
 
       <Modal
         visible={showAddOptionModal}
@@ -568,65 +611,12 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         transparent={false}
         onRequestClose={() => {
           setShowAddOptionModal(false);
+          setModalState('addOptions');
         }}
         presentationStyle='pageSheet'
       >
-        <View style={styles.modalContainer}>
-        <Image
-              source={require('../../assets/effortless.png')}
-              style={{ width: 300, height: 300, alignSelf: 'center'}}
-            />
-        <View style={{borderColor: 'black', borderWidth: 0.5, width: '100%',  marginBottom: 15}}></View>
-          <TouchableOpacity
-            style={styles.modalButton}
-            onPress={() => {
-              setEditingExercise(null);
-              setShowAddExerciseModal(true);
-              setNewExerciseTitle('');
-              setNewExerciseSets(3);
-              setNewExerciseRepRange('8-12');
-              setSetDetail([{ set: 1, weight: '0', repRange: `10` }]);
-              setShowAddOptionModal(false);
-            }}
-          >
-            <Text style={styles.buttonText}>Add Exercise</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.modalButton}
-            onPress={() => {
-              openMasterExercisesList();
-              setShowAddOptionModal(false);
-            }}
-          >
-            <Text style={styles.buttonText}>Add from Master List</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.cancelButton, styles.modalButton]}
-            onPress={() => {
-              setShowAddOptionModal(false);
-            }}
-          >
-            <Text style={styles.buttonText}>Cancel</Text>
-          
-          </TouchableOpacity>
-        </View>
+        {renderModalContent()}
       </Modal>
-      {showMasterExercisesList && (
-        <Modal
-        visible={showMasterExercisesList}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={closeMasterExercisesList}
-      >
-        <MasterExercisesList
-          masterExercises={masterExercises}
-          addMasterExerciseToCurrentDay={addMasterExerciseToCurrentDay}
-          onClose={closeMasterExercisesList}
-        />
-      </Modal>
-      )}
     </View>
     </KeyboardAvoidingView>
   );

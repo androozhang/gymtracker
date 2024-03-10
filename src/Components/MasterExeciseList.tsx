@@ -1,6 +1,7 @@
 import React, { FC } from 'react';
-import { View, FlatList, Text, TouchableHighlight, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, FlatList, Text, TouchableHighlight, StyleSheet, TouchableOpacity } from 'react-native';
 import { Exercise } from '../navigations/types';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 interface MasterExercisesListProps {
   masterExercises: Exercise[];
@@ -15,10 +16,17 @@ const MasterExercisesList: FC<MasterExercisesListProps> = ({
 }) => {
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>
-        Master Exercises List
-      </Text>
+    <View>
+      <View style={{ flexDirection: 'row', height: 50, alignItems: 'center' }}>
+        <Text style={styles.heading}>
+          Master Exercises List
+        </Text>
+        <TouchableOpacity onPress={() => {
+               onClose();
+            }} style={{marginLeft: 'auto',}}>
+              <Ionicons name="return-down-back-outline" size={24} color="black" />
+            </TouchableOpacity>
+      </View>
       <FlatList
         data={masterExercises}
         style={{paddingTop: 10, paddingBottom: 10}}
@@ -33,26 +41,12 @@ const MasterExercisesList: FC<MasterExercisesListProps> = ({
           </TouchableHighlight>
         )}
       />
-      <TouchableOpacity
-        style={[styles.touchableButton]}
-        onPress={() => onClose()}
-      >
-        <Text style={[[styles.buttonText]]}>
-          Cancel
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 };
 
 // In the MasterExercisesList component
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: 16,
-      backgroundColor: '#f0f0f0',
-      top: 50,
-    },
     heading: {
       fontSize: 24,
       fontWeight: '300',
