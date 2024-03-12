@@ -19,7 +19,7 @@
       "bundleIdentifier": "com.androozhang.gymtracker",
       "googleServicesFile": "./GoogleService-Info.plist",
       "usesAppleSignIn": true,
-      "buildNumber": "7"
+      "buildNumber": "10"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
