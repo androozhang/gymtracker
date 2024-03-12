@@ -240,7 +240,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         setSetDetail([{ set: 1, weight: '0', repRange: `10` }]);  // Reset setDetail
     
         refreshExercises();
-        setShowAddExerciseModal(false);
+        setShowAddOptionModal(false);
       } catch (error) {
         console.error("Error adding exercise:", error);
       }
@@ -252,7 +252,8 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
 
   const handleEditExercise = (exercise: Exercise) => {
     setEditingExercise(exercise);
-    setShowAddExerciseModal(true);
+    setShowAddOptionModal(true);
+    setModalState('addExercise');
     setNewExerciseTitle(exercise.title);
     setNewExerciseSets(exercise.sets);
     setNewExerciseRepRange(exercise.repRange);
@@ -344,7 +345,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
           }
     
           refreshExercises();
-          setShowAddExerciseModal(false);
+          setShowAddOptionModal(false);
           setEditingExercise(null);
         }
       } catch (error) {
@@ -379,7 +380,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         await exercisesRef.doc(editingExercise.id).delete();
         refreshExercises();
 
-      setShowAddExerciseModal(false);
+      setShowAddOptionModal(false);
       setEditingExercise(null);
 
       }
@@ -418,7 +419,7 @@ const DayDetailScreen: React.FC<DayDetailScreenProps> = ({ route }) => {
         closeMasterExercisesList();
         refreshExercises();
     
-        setShowMasterExercisesModal(false);
+        setShowAddOptionModal(false);
       } catch (error) {
         console.error("Error adding master exercise to current day:", error);
       }
